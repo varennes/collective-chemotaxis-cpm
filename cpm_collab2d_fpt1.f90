@@ -202,6 +202,9 @@ do while( tMCS < tmax )
         if( d >= df )then
             firstpass(nRun) = tMCS - 1
             tMCS = tmax
+        elseif( d <= -1.0*df )then
+            firstpass(nRun) = 0.0
+            tMCS = tmax
         endif
 
     endif
