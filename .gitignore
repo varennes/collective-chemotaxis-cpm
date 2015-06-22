@@ -1,0 +1,8 @@
+# no .o* files
+*.o*
+
+# no fort.* files
+fort.*
+
+# no .mod files
+*.mod
