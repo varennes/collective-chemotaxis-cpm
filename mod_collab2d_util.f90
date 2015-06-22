@@ -55,7 +55,7 @@ subroutine itlSigma( r0, rCell, rSim, sigma)
 
     rGroup = [ r0(1)*rCell(1), r0(2)*rCell(2) ]
 
-    if( rGroup(1) >= rSim(1) .OR. rGroup(2) >= rSim(2) )then
+    if( rGroup(1) > rSim(1) .OR. rGroup(2) > rSim(2) )then
         write(*,*) 'WARNING: Not enough of room for cell cluster!'
     endif
 

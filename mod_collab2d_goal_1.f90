@@ -54,10 +54,6 @@ real function goalEval1( A0, N, rSim, sigma, x)
 
                 call nnGet( i, ls2, rSim, ls1)
 
-                if( ls2(1) == 0 )then
-                    cycle
-                endif
-
                 J = jCheck( ls1, ls2, sigma)
                 sum1 = sum1 + J
 
@@ -96,7 +92,12 @@ real function jCheck( ls1, ls2, sigma)
     beta  = 1.0
 
     i = sigma(ls1(1),ls1(2))
-    j = sigma(ls2(1),ls2(2))
+
+    if( ls2(1) == 0 )then
+        j = 0
+    else
+        j = sigma(ls2(1),ls2(2))
+    endif
 
     if( i == j )then
         jCheck = 0.0
