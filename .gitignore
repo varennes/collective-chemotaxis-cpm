@@ -6,3 +6,6 @@ fort.*
 
 # no .mod files
 *.mod
+
+# no input.txt
+input.txt
