@@ -17,7 +17,7 @@ subroutine wrtSigma( rSim, sigma, tstep)
     integer :: i
     ! write out sigma
     write(101,*) 't =', tstep - 1
-    do i = 1, rSim(2)
+    do i = 1, rSim(2) + 2
         write(101,*) sigma(:,i)
     enddo
     write(101,*)
@@ -79,7 +79,7 @@ subroutine wrtEdge( edge, rSim, sigma, tstep)
     integer, intent(in), dimension(2)   :: rSim
     integer, intent(in), dimension(:,:) :: sigma
     integer, intent(in), dimension(:,:) :: edge
-    integer, dimension(rSim(1),rSim(2)) :: sigmaWrt
+    integer, dimension(rSim(1)+2,rSim(2)+2) :: sigmaWrt
     integer :: i, j, k, n
 
     sigmaWrt = sigma
@@ -93,7 +93,7 @@ subroutine wrtEdge( edge, rSim, sigma, tstep)
     enddo
 
     write(103,*) 't =', tstep - 1
-    do i = 1, rSim(2)
+    do i = 1, rSim(2) + 2
         write(103,*) sigmaWrt(:,i)
     enddo
     write(103,*)

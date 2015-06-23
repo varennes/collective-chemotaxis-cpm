@@ -51,13 +51,13 @@ write(*,*)
 
 call init_random_seed()
 
-allocate(    sigma( rSim(1), rSim(2)) )
-allocate( sigmaTmp( rSim(1), rSim(2)) )
+allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
+allocate( sigmaTmp( rSim(1) + 2, rSim(2) + 2) )
 allocate(     x( N, 2*A0, 2) )
 allocate(  xTmp( N, 2*A0, 2) )
 allocate(  xCOM( tmax, 2) )
 
-allocate( edge( rSim(1)*rSim(2), 2) )
+allocate( edge( (rSim(1)+2)*(rSim(2)+2), 2) )
 allocate( filled( 2*A0, 2) )
 allocate( node(2) )
 
@@ -67,6 +67,8 @@ neMeanrun = 0.0
 firstpass = 0.0
 
 do nRun = 1, runTotal
+
+write(*,*) '  nRun =',nRun
 
 tcount = 1
 tELEM  = 1 ! elementary time step
@@ -109,11 +111,11 @@ uOld = goalEval1( A0, N, rSim, sigma, x)
 uNew = 0.0
 
 ! write outputs
-! write(*,*) tELEM,' xCOM =',xCOM(tELEM,:)
 ! call wrtSigma( rSim, sigma, tELEM)
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
+! write(150,*) xCOM(tELEM,:), tELEM
 ! call wrtX( N, x, tELEM)
 
 do while( tMCS < tmax )
@@ -125,7 +127,12 @@ do while( tMCS < tmax )
 
     call pickb( a, b, rSim)
 
-    if( sigma(b(1),b(2)) /= sigma(a(1),a(2)) )then
+    if( b(1) == 1 .OR. b(2) == 1 )then
+        ! don't attempt to copy sigma value
+    elseif( b(1) == (rSim(1) + 2) .OR. b(2) == (rSim(2) + 2) )then
+        ! don't attempt to copy sigma value
+
+    elseif( sigma(b(1),b(2)) /= sigma(a(1),a(2)) )then
         ! make and update sigmaTmp
         sigmaTmp = sigma
         ! sigmaTmp(b(1),b(2)) = aSigma
@@ -193,17 +200,14 @@ do while( tMCS < tmax )
         call calcXCOM( N, x, xCOM(tMCS,:))
 
         ! write outputs
-        ! write(*,*) tMCS,' xCOM =',xCOM(tMCS,:)
         ! call wrtSigma( rSim, sigma, tMCS)
+        ! write(150,*) xCOM(tMCS,:), tMCS
         ! call wrtX( N, x, tMCS)
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
         if( d >= df )then
             firstpass(nRun) = tMCS - 1
-            tMCS = tmax
-        elseif( d <= -0.5*df )then
-            firstpass(nRun) = 0.0
             tMCS = tmax
         endif
 
@@ -225,6 +229,7 @@ neMeanRun = neMeanRun / real(runTotal)
 close(11)
 
 call cpu_time(tf)
+write(*,*)
 write(*,*) 'Run time =',tf-t0
 write(*,*) 'Initial edge area =',ne0
 write(*,*) 'Average edge area =', neMeanRun

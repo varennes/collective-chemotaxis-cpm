@@ -22,8 +22,8 @@ subroutine makeX( N, rSim, sigma, x)
     lsCount(:) = 0
     x = 0
 
-    do nx = 1, rSim(1)
-        do ny = 1, rSim(2)
+    do nx = 1, rSim(1) + 2
+        do ny = 1, rSim(2) + 2
             if( sigma(nx,ny) /= 0 )then
 
                 cellIndex = sigma(nx,ny)
@@ -59,13 +59,13 @@ subroutine itlSigma( r0, rCell, rSim, sigma)
         write(*,*) 'WARNING: Not enough of room for cell cluster!'
     endif
 
-    xi = ceiling( real(rSim(1))/2.0 - real(rGroup(1))/2.0 ) + 1
+    xi = ceiling( real(rSim(1))/2.0 - real(rGroup(1))/2.0 ) + 2
 
     i = 0
     do nx = 1, rCell(1)
 
         xf = xi + r0(1) - 1
-        yi = ceiling( real(rSim(2))/2.0 - real(rGroup(2))/2.0 ) + 1
+        yi = ceiling( real(rSim(2))/2.0 - real(rGroup(2))/2.0 ) + 2
 
         do ny = 1, rCell(2)
 
@@ -96,8 +96,8 @@ subroutine itlEdge( edge, ne, rSim, sigma)
     ne = 1
     edge = 0
 
-    do i1 = 1, rSim(1)
-    do i2 = 1, rSim(2)
+    do i1 = 1, rSim(1) + 2
+    do i2 = 1, rSim(2) + 2
         do k = 1, 4
             call nnGet( k, nn, rSim, [i1,i2])
 
@@ -205,9 +205,9 @@ subroutine nnGet( i, nn, rSim, x)
 
     endif
 
-    if( nn(1) > rSim(1) .OR. nn(1) < 1 )then
+    if( nn(1) > (rSim(1) + 2) .OR. nn(1) < 1 )then
         nn = [ 0, 0]
-    elseif( nn(2) > rSim(2) .OR. nn(2) < 1 )then
+    elseif( nn(2) > (rSim(2) + 2) .OR. nn(2) < 1 )then
         nn = [ 0, 0]
     endif
 
