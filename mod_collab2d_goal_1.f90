@@ -6,18 +6,15 @@ contains
 
 
 ! calculate the probability of step being executed
-real function probEval( uNew, uOld)
+real function probEval( uNew, uOld, w)
     ! uNew = Energy of potential, new configuration
     ! uOld = Energy of original configuration
     implicit none
-    real, intent(in) :: uNew, uOld
-    real :: du, w
+    real, intent(in) :: uNew, uOld, w
+    real :: du
 
     ! calculate the change in the goal function
     du = uNew - uOld
-
-    ! for now set bias to zero
-    w = 0.0
 
     ! calculate probability
     probEval = exp( min(0.0, -1.0*du + w ) )

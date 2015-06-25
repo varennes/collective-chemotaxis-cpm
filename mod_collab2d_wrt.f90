@@ -116,4 +116,16 @@ subroutine wrtEdgeArray( edge, tstep)
 end subroutine wrtEdgeArray
 
 
+subroutine wrtPolar( N, p, tstep)
+    implicit none
+    integer, intent(in) :: N, tstep
+    real,    intent(in), dimension(:,:) :: p
+    integer :: i
+
+    do i = 1, N
+        write(140,*) p(i,:), tstep
+    enddo
+
+end subroutine wrtPolar
+
 end module

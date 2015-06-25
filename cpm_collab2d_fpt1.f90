@@ -5,12 +5,13 @@ program cpmcollab
 
 use utility
 use goal
+use polar
 use simpleconnect
 use wrtout
 
 ! allocate variables
 implicit none
-integer :: i, j, ne, ne0, nf, nl, check
+integer :: i, j, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
@@ -22,8 +23,11 @@ integer, allocatable :: x(:,:,:), xTmp(:,:,:)
 integer, allocatable :: edge(:,:), filled(:,:), node(:)
 integer, dimension(2) :: a, b, nn
 
+real, allocatable :: p(:,:), cellCOM(:,:), cellCOMold(:,:)
+real :: plrP, plrR
+
 real, allocatable :: firstpass(:), xCOM(:,:)
-real :: d, df, p, r, uNew, uOld
+real :: d, df, prob, r, uNew, uOld, w
 real :: neMean, neMeanRun
 real :: t0, tf
 
@@ -42,6 +46,9 @@ read(11,*) df
 rSim(1) = x1 + x2
 N       = rCell(1) * rCell(2)
 A0      = r0(1) * r0(2)
+
+plrP = 2.0
+plrR = 0.2
 
 write(*,*) '   N =',N
 write(*,*) '  A0 =',A0
@@ -62,6 +69,10 @@ allocate( filled( 2*A0, 2) )
 allocate( node(2) )
 
 allocate( firstpass(runTotal) )
+
+allocate( p(N,2) )
+allocate( cellCOM(N,2) )
+allocate( cellCOMold(N,2) )
 
 neMeanrun = 0.0
 firstpass = 0.0
@@ -102,8 +113,19 @@ neMean = real(ne)
 rSim(1) = x1
 call makeX( N, rSim, sigma, x)
 
-! initialize xCOM
+! initialize xCOM and cellCOM
 call calcXCOM( N, x, xCOM(1,:))
+! write(*,*) 'calcCell'
+do i = 1, N
+    call calcCellCOM( x(i,:,:),  cellCOM(i,:))
+enddo
+cellCOMold = cellCOM
+
+! initialize polarization
+call itlPolar( N, plrP, p)
+! do i = 1, N
+!     p(i,:) = [plrP,0.0]
+! enddo
 
 ! calculate initial energy
 rSim(1) = x1 + x2
@@ -115,6 +137,7 @@ uNew = 0.0
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
+! call wrtPolar( N, p, tELEM)
 ! write(150,*) xCOM(tELEM,:), tELEM
 ! call wrtX( N, x, tELEM)
 
@@ -158,12 +181,20 @@ do while( tMCS < tmax )
 
         if( check == N )then
             ! the new configuration is simply connected
+            ! calculate probability of execution
+            aSig = sigma(a(1),a(2))
+            bSig = sigma(b(1),b(2))
+
+            ! write(*,*) 'aSig =',aSig,'bSig =',bSig
+
+            w    = getBias( aSig, bSig, plrP, p, x, xtmp)
+            ! write(*,*) ' w =',w
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
-            p    = probEval( uNew, uOld)
+            prob = probEval( uNew, uOld, w)
 
             call random_number(r)
 
-            if( r < p )then
+            if( r < prob )then
                 ! execute
                 sigma = sigmaTmp
                 x     = xTmp
@@ -196,11 +227,19 @@ do while( tMCS < tmax )
 
         neMean = neMean + real(ne)
 
-        ! calculate COM
+        ! update polarization vector
+        do i = 1, N
+            call calcCellCOM( x(i,:,:),  cellCOM(i,:))
+            call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
+        enddo
+        cellCOMold = cellCOM
+
+        ! calculate COM of the whole group
         call calcXCOM( N, x, xCOM(tMCS,:))
 
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
+        ! call wrtPolar( N, p, tMCS)
         ! write(150,*) xCOM(tMCS,:), tMCS
         ! call wrtX( N, x, tMCS)
 
