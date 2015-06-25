@@ -55,22 +55,6 @@ subroutine pickb( a, b, rSim)
 end subroutine pickb
 
 
-! pick b
-subroutine pickb2( a, b, rSim)
-    implicit none
-    integer, intent(in),  dimension(2) :: a, rSim
-    integer, intent(out), dimension(2) :: b
-    integer :: i, j
-    real :: r
-
-    b = 0
-    call random_number(r)
-    i = 1 + floor(4.0*r)
-    call nnGet( i, b, rSim, a)
-
-end subroutine pickb2
-
-
 ! update array edge. Check whether lattice site ls is an edge.
 subroutine updateEdge( ls, edge, ne, rSim, sigma)
     implicit none
