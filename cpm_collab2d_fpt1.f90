@@ -26,14 +26,14 @@ integer, dimension(2) :: a, b, nn
 real, allocatable :: p(:,:), cellCOM(:,:), cellCOMold(:,:)
 real :: plrP, plrR
 
-real, allocatable :: firstpass(:), xCOM(:,:)
+real, allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
 real :: d, df, prob, r, uNew, uOld, w
 real :: neMean, neMeanRun
 real :: t0, tf
 
 call cpu_time(t0)
 
-! initialize variables
+! initialize parameters, variables
 open(unit=11,file='input.txt',status='old',action='read')
 read(11,*) r0(1), r0(2)
 read(11,*) rCell(1), rCell(2)
@@ -47,33 +47,39 @@ rSim(1) = x1 + x2
 N       = rCell(1) * rCell(2)
 A0      = r0(1) * r0(2)
 
-plrP = 2.0
-plrR = 0.2
+! initialize parameters for polarization
+open(unit=12,file='polarInput.txt',status='old',action='read')
+read(12,*) plrP
+read(12,*) plrR
 
 write(*,*) '   N =',N
 write(*,*) '  A0 =',A0
 write(*,*) 'rSim =',rSim
 write(*,*) '  df =',df
+write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
 call init_random_seed()
 
 allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
 allocate( sigmaTmp( rSim(1) + 2, rSim(2) + 2) )
-allocate(     x( N, 2*A0, 2) )
-allocate(  xTmp( N, 2*A0, 2) )
+allocate(     x( N, 4*A0, 2) )
+allocate(  xTmp( N, 4*A0, 2) )
 allocate(  xCOM( tmax, 2) )
 
 allocate( edge( (rSim(1)+2)*(rSim(2)+2), 2) )
-allocate( filled( 2*A0, 2) )
+allocate( filled( 4*A0, 2) )
 allocate( node(2) )
 
+allocate(    MSD( tmax) )
+allocate( MSDrun( tmax) )
 allocate( firstpass(runTotal) )
 
 allocate( p(N,2) )
 allocate( cellCOM(N,2) )
 allocate( cellCOMold(N,2) )
 
+MSDrun    = 0.0
 neMeanrun = 0.0
 firstpass = 0.0
 
@@ -96,6 +102,7 @@ sigmaTmp = 0
 
 d    = 0.0
 xCOM = 0.0
+MSD  = 0.0
 
 a = 1
 b = 1
@@ -236,6 +243,8 @@ do while( tMCS < tmax )
 
         ! calculate COM of the whole group
         call calcXCOM( N, x, xCOM(tMCS,:))
+        ! calculate MSD
+        MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
@@ -254,10 +263,17 @@ do while( tMCS < tmax )
 
 enddo ! end while loop
 
+MSDrun = MSDrun + MSD
+
 neMean    = neMean / real(tcount)
 neMeanRun = neMeanRun + neMean
 
 enddo ! end run loop
+
+MSDrun = MSDrun / real(runTotal)
+do i = 1, tmax
+    write(108,*) MSDrun(i), i-1
+enddo
 
 do i = 1, runTotal
     write(109,*) firstpass(i), i

@@ -70,25 +70,38 @@ real function getBias( aSig, bSig, plrP, p, x, xtmp)
     real,    intent(in), dimension(:,:)   :: p
     integer, intent(in), dimension(:,:,:) :: x, xtmp
     real, dimension(2) :: comNew, comOld
-    real :: sum
+    real :: sum1, sum2
 
-    sum = 0.0
+    ! check if plrP = 0.0
+    if( plrP == 0.0 )then
+        getBias = 0.0
+    else
+        sum1 = 0.0
+        if( aSig /= 0 )then
+            call calcCellCOM(    x(aSig,:,:), comOld)
+            call calcCellCOM( xtmp(aSig,:,:), comNew)
 
-    if( aSig /= 0 )then
-        call calcCellCOM(    x(aSig,:,:), comOld)
-        call calcCellCOM( xtmp(aSig,:,:), comNew)
+            sum1 = dot_product( (comNew-comOld), p(aSig,:))
 
-        sum = dot_product( (comNew-comOld), p(aSig,:)) / sqrt( dot_product( p(aSig,:),p(aSig,:) ) )
+            if( sum1 /= 0.0 )then
+                sum1 = sum1 / sqrt( dot_product( p(aSig,:),p(aSig,:) ) )
+            endif
+        endif
+
+        sum2 = 0.0
+        if( bSig /= 0 )then
+            call calcCellCOM(    x(bSig,:,:), comOld)
+            call calcCellCOM( xtmp(bSig,:,:), comNew)
+
+            sum2 = dot_product( (comNew-comOld), p(bSig,:))
+
+            if( sum2 /= 0.0 )then
+                sum2 = sum2 / sqrt( dot_product( p(bSig,:),p(bSig,:) ) )
+            endif
+        endif
+
+        getBias = plrP * (sum1 + sum2)
     endif
-
-    if( bSig /= 0 )then
-        call calcCellCOM(    x(bSig,:,:), comOld)
-        call calcCellCOM( xtmp(bSig,:,:), comNew)
-
-        sum = sum + dot_product( (comNew-comOld), p(bSig,:)) / sqrt( dot_product( p(bSig,:),p(bSig,:) ) )
-    endif
-
-    getBias = plrP * sum
 
 end function getBias
 
