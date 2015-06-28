@@ -131,7 +131,7 @@ cellCOMold = cellCOM
 ! initialize polarization
 call itlPolar( N, plrP, p)
 ! do i = 1, N
-!     p(i,:) = [plrP,0.0]
+!     write(*,*) 'p(i) =', p(i,:), sqrt( dot_product( p(i,:),p(i,:) ) )
 ! enddo
 
 ! calculate initial energy
@@ -194,8 +194,12 @@ do while( tMCS < tmax )
 
             ! write(*,*) 'aSig =',aSig,'bSig =',bSig
 
-            w    = getBias( aSig, bSig, plrP, p, x, xtmp)
+            ! w = getBias( aSig, bSig, plrP, p, x, xtmp)
+
+            w = getBias2( plrP, a, b, p(aSig,:), p(bSig,:))
+
             ! write(*,*) ' w =',w
+
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
 

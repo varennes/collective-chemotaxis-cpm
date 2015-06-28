@@ -106,4 +106,30 @@ real function getBias( aSig, bSig, plrP, p, x, xtmp)
 end function getBias
 
 
+! calculate bias due to polarization
+real function getBias2( plrP, a, b, pa, pb)
+    implicit none
+    real,    intent(in) :: plrP
+    real,    intent(in), dimension(2) :: pa, pb
+    integer, intent(in), dimension(2) :: a, b
+    real :: sum
+
+    sum = 0.0
+
+    if( dot_product(pa,pa) == 0.0 )then
+        ! do nothing
+    else
+        sum = sum + dot_product( pa, (b-a)) / sqrt( dot_product(pa,pa))
+    endif
+
+    if( dot_product(pb,pb) == 0.0 )then
+        ! do nothing
+    else
+        sum = sum + dot_product( pb, (b-a)) / sqrt( dot_product(pb,pb))
+    endif
+
+    getBias2 = plrP * sum
+
+end function getBias2
+
 end module
