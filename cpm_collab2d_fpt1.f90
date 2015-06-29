@@ -145,6 +145,7 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtPolar( N, p, tELEM)
+! write(160,*) sum(cellCOM(:,1))/real(N), sum(cellCOM(:,2))/real(N), tELEM
 ! write(150,*) xCOM(tELEM,:), tELEM
 ! call wrtX( N, x, tELEM)
 
@@ -165,7 +166,6 @@ do while( tMCS < tmax )
     elseif( sigma(b(1),b(2)) /= sigma(a(1),a(2)) )then
         ! make and update sigmaTmp
         sigmaTmp = sigma
-        ! sigmaTmp(b(1),b(2)) = aSigma
         sigmaTmp(b(1),b(2)) = sigma(a(1),a(2))
 
         call makeX( N, rSim, sigmaTmp, xTmp)
@@ -194,9 +194,9 @@ do while( tMCS < tmax )
 
             ! write(*,*) 'aSig =',aSig,'bSig =',bSig
 
-            ! w = getBias( aSig, bSig, plrP, p, x, xtmp)
+            w = getBias3( aSig, bSig, plrP, p, x, xtmp)
 
-            w = getBias2( plrP, a, b, p(aSig,:), p(bSig,:))
+            ! w = getBias2( plrP, a, b, p(aSig,:), p(bSig,:))
 
             ! write(*,*) ' w =',w
 
@@ -239,6 +239,9 @@ do while( tMCS < tmax )
         neMean = neMean + real(ne)
 
         ! update polarization vector
+
+        write(170,*) cellCOMold(1,:), tMCS
+
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
             call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
@@ -253,6 +256,7 @@ do while( tMCS < tmax )
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
         ! call wrtPolar( N, p, tMCS)
+        ! write(160,*) sum(cellCOM(:,1))/real(N), sum(cellCOM(:,2))/real(N), tMCS
         ! write(150,*) xCOM(tMCS,:), tMCS
         ! call wrtX( N, x, tMCS)
 

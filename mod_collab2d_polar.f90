@@ -107,6 +107,52 @@ end function getBias
 
 
 ! calculate bias due to polarization
+real function getBias3( aSig, bSig, plrP, p, x, xtmp)
+    implicit none
+    integer, intent(in) :: aSig, bSig
+    real,    intent(in) :: plrP
+    real,    intent(in), dimension(:,:)   :: p
+    integer, intent(in), dimension(:,:,:) :: x, xtmp
+    real, dimension(2) :: comNew, comOld
+    real :: sum1, sum2
+
+    ! check if plrP = 0.0
+    if( plrP == 0.0 )then
+        getBias3 = 0.0
+    else
+        sum1 = 0.0
+        if( aSig /= 0 )then
+            call calcCellCOM(    x(aSig,:,:), comOld)
+            call calcCellCOM( xtmp(aSig,:,:), comNew)
+
+            sum1 = dot_product( (comNew-comOld), p(aSig,:))
+
+            if( sum1 /= 0.0 )then
+                sum1 = sum1 / sqrt( dot_product( p(aSig,:),p(aSig,:) ) )
+                sum1 = sum1 / sqrt( dot_product( (comNew-comOld), (comNew-comOld)) )
+            endif
+        endif
+
+        sum2 = 0.0
+        if( bSig /= 0 )then
+            call calcCellCOM(    x(bSig,:,:), comOld)
+            call calcCellCOM( xtmp(bSig,:,:), comNew)
+
+            sum2 = dot_product( (comNew-comOld), p(bSig,:))
+
+            if( sum2 /= 0.0 )then
+                sum2 = sum2 / sqrt( dot_product( p(bSig,:),p(bSig,:) ) )
+                sum2 = sum2 / sqrt( dot_product( (comNew-comOld), (comNew-comOld)) )
+            endif
+        endif
+
+        getBias3 = plrP * (sum1 + sum2)
+    endif
+
+end function getBias3
+
+
+! calculate bias due to polarization
 real function getBias2( plrP, a, b, pa, pb)
     implicit none
     real,    intent(in) :: plrP
