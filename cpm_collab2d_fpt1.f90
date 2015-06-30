@@ -240,7 +240,7 @@ do while( tMCS < tmax )
 
         ! update polarization vector
 
-        write(170,*) cellCOMold(1,:), tMCS
+        ! write(170,*) cellCOMold(1,:), tMCS
 
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
