@@ -26,7 +26,8 @@ integer, dimension(2) :: a, b, nn
 real, allocatable :: p(:,:), cellCOM(:,:), cellCOMold(:,:)
 real :: plrP, plrR
 
-real, allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
+real, allocatable :: firstpass(:)
+real, dimension(2) :: xCM, xCM0
 real :: d, df, prob, r, uNew, uOld, w
 real :: neMean, neMeanRun
 real :: t0, tf
@@ -65,21 +66,17 @@ allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
 allocate( sigmaTmp( rSim(1) + 2, rSim(2) + 2) )
 allocate(     x( N, 4*A0, 2) )
 allocate(  xTmp( N, 4*A0, 2) )
-allocate(  xCOM( tmax, 2) )
 
 allocate( edge( (rSim(1)+2)*(rSim(2)+2), 2) )
 allocate( filled( 4*A0, 2) )
 allocate( node(2) )
 
-allocate(    MSD( tmax) )
-allocate( MSDrun( tmax) )
 allocate( firstpass(runTotal) )
 
 allocate( p(N,2) )
 allocate( cellCOM(N,2) )
 allocate( cellCOMold(N,2) )
 
-MSDrun    = 0.0
 neMeanrun = 0.0
 firstpass = 0.0
 
@@ -101,8 +98,8 @@ sigma    = 0
 sigmaTmp = 0
 
 d    = 0.0
-xCOM = 0.0
-MSD  = 0.0
+xCM  = 0.0
+xCM0 = 0.0
 
 a = 1
 b = 1
@@ -121,7 +118,7 @@ rSim(1) = x1
 call makeX( N, rSim, sigma, x)
 
 ! initialize xCOM and cellCOM
-call calcXCOM( N, x, xCOM(1,:))
+call calcXCOM( N, x, xCM0)
 do i = 1, N
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
 enddo
@@ -142,7 +139,7 @@ uNew = 0.0
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
 
-do while( tMCS < tmax )
+do while( tMCS /= 0 )
     tELEM = tELEM + 1
 
     call countEdge( edge, ne)
@@ -232,39 +229,29 @@ do while( tMCS < tmax )
         enddo
         cellCOMold = cellCOM
 
-        ! calculate COM of the whole group
-        call calcXCOM( N, x, xCOM(tMCS,:))
-        ! calculate MSD
-        MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
+        ! ! calculate COM of the whole group
+        call calcXCOM( N, x, xCM)
 
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
         ! call wrtPolar( N, p, tMCS)
-        ! write(150,*) xCOM(tMCS,:), tMCS
         ! call wrtX( N, x, tMCS)
 
         ! calculate d
-        d = calcD( xCOM(tMCS,1), xCOM(1,1))
+        d = calcD( xCM(1), xCM0(1))
         if( d >= df )then
             firstpass(nRun) = tMCS - 1
-            tMCS = tmax
+            tMCS = 0
         endif
 
     endif
 
 enddo ! end while loop
 
-MSDrun = MSDrun + MSD
-
 neMean    = neMean / real(tcount)
 neMeanRun = neMeanRun + neMean
 
 enddo ! end run loop
-
-MSDrun = MSDrun / real(runTotal)
-do i = 1, tmax
-    write(108,*) MSDrun(i), i-1
-enddo
 
 do i = 1, runTotal
     write(109,*) firstpass(i), i
