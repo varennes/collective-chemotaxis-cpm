@@ -12,7 +12,8 @@ integer, dimension(2) :: r0, rCell, rSim
 
 integer, allocatable :: sigma(:,:), x(:,:,:)
 
-real, allocatable :: gNN(:,:), meanSignal(:), signal(:)
+real, allocatable :: y(:)
+real, allocatable :: etaY(:), gNN(:,:), M(:,:), meanSignal(:), signal(:), meanY(:)
 real, dimension(2) :: xCOM
 
 ! initialize parameters, variables
@@ -46,8 +47,12 @@ call init_random_seed()
 allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
 allocate(     x( N, 4*A0, 2) )
 allocate( meanSignal(N) )
+allocate( y(N) )
+allocate( meanY(N) )
+allocate(  etaY(N) )
 allocate( signal(N) )
 allocate( gNN(N,N) )
+allocate(   M(N,N) )
 
 x    = 0
 sigma    = 0
@@ -77,16 +82,35 @@ do i = 2, rSim(1)+1
     write(122,*) chemE( real(i), real(rSim(2)))
 enddo
 
-call gammaMat( gNN, N, rSim, sigma, x)
+call makeMtrxGamma( gNN, N, rSim, sigma, x)
+call makeMtrxM( gNN, M, N)
+call getMeanY( meanSignal, M, meanY, N)
 
 do i = 1, N
     write(133,*) gNN(i,:)
+    write(144,*)   M(i,:)
 enddo
 
 call calcXCOM( N, x, xCOM)
 
+call getEtaY( etaY, gNN, meanSignal, meanY, N)
+
+call getSpeciesY( etaY, M, N, signal, y)
+
+do i = 1, 1000
+    write(111,*) getCellSignal( meanSignal(1))
+    write(112,*) getLocalX( meanSignal(1), signal(1))
+    call getEtaY( etaY, gNN, meanSignal, meanY, N)
+    call getSpeciesY( etaY, M, N, signal, y)
+    write(113,*) y(1)
+enddo
+
+write(*,*) 'N =', N
+write(*,*) '      xCOM =', xCOM
 write(*,*) 'meanSignal =', meanSignal
-write(*,*) '      xCOM = ', xCOM
+write(*,*)
+write(*,*) '     meanY =', meanY
+write(*,*) '         y =', y
 
 end program
 

@@ -61,12 +61,12 @@ real function getLocalX( meanSignal, signal)
     implicit none
     real, intent(in) :: meanSignal, signal
     real(b8) :: m = 0.0, s = 1.0
-    real :: eta2, eta3, etaX, meanX
+    real :: xi2, xi3, etaX, meanX
 
     meanX = meanSignal*kappa/mu
-    eta2 = normal( m, s)
-    eta3 = normal( m, s)
-    etaX = sqrt(kappa*meanSignal)*eta2 - sqrt(mu*meanX)*eta3
+    xi2 = normal( m, s)
+    xi3 = normal( m, s)
+    etaX = sqrt(kappa*meanSignal)*xi2 - sqrt(mu*meanX)*xi3
 
     getLocalX = signal*kappa/mu + etaX/mu
     if( getLocalX < 0.0 )then
@@ -75,7 +75,106 @@ real function getLocalX( meanSignal, signal)
 end function getLocalX
 
 
-subroutine gammaMat( gNN, N, rSim, sigma, x)
+! calculate population of y species
+subroutine getSpeciesY( etaY, M, N, signal, y)
+    implicit none
+    integer, intent(in) :: N
+    real,    intent(in),  dimension(:,:) :: M
+    real,    intent(in),  dimension(:)   :: etaY, signal
+    real,    intent(out), dimension(:)   :: y
+    real, allocatable :: b(:), a(:,:)
+    integer :: i
+
+    allocate( b(N) )
+    allocate( a(N,N) )
+    b = kappa * signal + etaY
+    a = M
+
+    call gauss_1( a, b, y, N)
+
+    do i = 1, N
+        if( y(i) < 0.0 )then
+            y(i) = 0.0
+        endif
+    enddo
+    deallocate( a )
+    deallocate( b )
+end subroutine getSpeciesY
+
+! calculates mean y values for all cells
+subroutine getMeanY( meanSignal, M, meanY, N)
+    implicit none
+    integer, intent(in) :: N
+    real,    intent(in),  dimension(:,:) :: M
+    real,    intent(in),  dimension(:)   :: meanSignal
+    real,    intent(out), dimension(:)   :: meanY
+    real, allocatable :: b(:), a(:,:)
+
+    allocate( b(N) )
+    allocate( a(N,N) )
+    b = kappa * meanSignal
+    a = M
+
+    call gauss_1( a, b, meanY, N)
+
+    deallocate( a )
+    deallocate( b )
+end subroutine
+
+
+! calculates the noise term in y dynamics
+subroutine getEtaY( etaY, gNN, meanS, meanY, N)
+    implicit none
+    integer, intent(in) :: N
+    real,    intent(in),  dimension(:,:) :: gNN
+    real,    intent(in),  dimension(:)   :: meanS, meanY
+    real,    intent(out), dimension(:)   :: etaY
+    real(b8) :: m = 0.0, s = 1.0
+    real :: xi4, xi5, chiJ, sum1
+    integer :: i, j
+
+    etaY = 0.0
+
+    do i = 1, N
+        xi4 = normal( m, s)
+        xi5 = normal( m, s)
+        etaY(i) = sqrt( kappa * meanS(i) ) * xi4 - sqrt( mu * meanY(i) ) * xi5
+
+        sum1 = 0.0
+        do j = 1, N
+            chiJ = normal( m, s)
+            sum1 = sum1 + chiJ * sqrt(gNN(i,j)) * ( sqrt(meanY(j)) - sqrt(meanY(i)) )
+        enddo
+
+        etaY(i) = etaY(i) + sum1
+    enddo
+
+end subroutine getEtaY
+
+
+! make matrix M for degradation and exchange of y
+subroutine makeMtrxM( gNN, M, N)
+    implicit none
+    integer, intent(in) :: N
+    real,    intent(in),  dimension(:,:) :: gNN
+    real,    intent(out), dimension(:,:) :: M
+    integer :: j, k
+
+    M = 0.0
+    do j = 1, N
+        M(j,j) = mu + sum( gNN(j,1:N) )
+        do k = j+1, N
+            if( gNN(j,k) /= 0.0 )then
+                M(j,k) = -1.0*gNN(j,k)
+                M(k,j) = M(j,k)
+            endif
+        enddo
+    enddo
+end subroutine makeMtrxM
+
+
+! make matri gNN of all gamma_j,k values
+subroutine makeMtrxGamma( gNN, N, rSim, sigma, x)
     implicit none
     integer, intent(in) :: N
     real,    intent(inout), dimension(:,:)   :: gNN
@@ -116,7 +215,7 @@ subroutine gammaMat( gNN, N, rSim, sigma, x)
 
     enddo
 
-end subroutine gammaMat
+end subroutine makeMtrxGamma
 
 
 ! returns random number between 0 - 1
@@ -155,6 +254,51 @@ function normal(mean,sigma)
     normal=tmp*sigma+mean
     return
 end function normal
+
+
+subroutine gauss_1(a,b,x,n)
+    !============================================================
+    ! Solutions to a system of linear equations A*x=b
+    ! Method: the basic elimination (simple Gauss elimination)
+    ! Alex G. November 2009
+    !-----------------------------------------------------------
+    ! input ...
+    ! a(n,n) - array of coefficients for matrix A
+    ! b(n) - vector of the right hand coefficients b
+    ! n - number of equations
+    ! output ...
+    ! x(n) - solutions
+    ! comments ...
+    ! the original arrays a(n,n) and b(n) will be destroyed
+    ! during the calculation
+    !===========================================================
+    implicit none
+    integer n
+    real a(n,n), b(n), x(n)
+    real c
+    integer i, j, k
+    !step 1: forward elimination
+    !    print*,'hi'
+    do k=1, n-1
+        do i=k+1,n
+            c=a(i,k)/a(k,k)
+            a(i,k) = 0.0
+            b(i)=b(i)- c*b(k)
+            do j=k+1,n
+                a(i,j) = a(i,j)-c*a(k,j)
+            end do
+        end do
+    end do
+    !step 2: back substitution
+    x(n) = b(n)/a(n,n)
+    do i=n-1,1,-1
+        c=0.0
+        do j=i+1,n
+            c= c + a(i,j)*x(j)
+        end do
+        x(i) = (b(i)- c)/a(i,i)
+    end do
+end subroutine gauss_1
 
 
 end module
