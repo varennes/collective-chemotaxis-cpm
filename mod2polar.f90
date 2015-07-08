@@ -8,9 +8,9 @@ contains
 ! update the polarization vector
 subroutine getPolar( p, plrR, comNew, comOld)
     implicit none
-    real, intent(in) :: plrR
-    real, intent(inout), dimension(2) :: p
-    real, intent(in),    dimension(2) :: comNew, comOld
+    real(b8), intent(in) :: plrR
+    real(b8), intent(inout), dimension(2) :: p
+    real(b8), intent(in),    dimension(2) :: comNew, comOld
 
     p = (1.0 - plrR) * p + COMnew - COMold
 
@@ -21,10 +21,10 @@ end subroutine getPolar
 subroutine itlPolar( N, plrP, p)
     implicit none
     integer, intent(in) :: N
-    real,    intent(in) :: plrP
-    real,    intent(out), dimension(:,:) :: p
+    real(b8),    intent(in) :: plrP
+    real(b8),    intent(out), dimension(:,:) :: p
     integer :: i
-    real :: pi, r
+    real(b8) :: pi, r
 
     pi = 3.14159265359
     p  = 0.0
@@ -44,7 +44,7 @@ subroutine calcCellCOM( xcell, com)
     ! com = center of mass of a single cell
     implicit none
     integer, intent(in),  dimension(:,:) :: xcell
-    real,    intent(out), dimension(:) :: com
+    real(b8),    intent(out), dimension(:) :: com
     integer :: i, j, nl
 
     com = 0.0
@@ -63,14 +63,14 @@ end subroutine calcCellCOM
 
 
 ! calculate bias due to polarization
-real function getBias( aSig, bSig, plrP, p, x, xtmp)
+real(b8) function getBias( aSig, bSig, plrP, p, x, xtmp)
     implicit none
     integer, intent(in) :: aSig, bSig
-    real,    intent(in) :: plrP
-    real,    intent(in), dimension(:,:)   :: p
+    real(b8),    intent(in) :: plrP
+    real(b8),    intent(in), dimension(:,:)   :: p
     integer, intent(in), dimension(:,:,:) :: x, xtmp
-    real, dimension(2) :: comNew, comOld
-    real :: sum1, sum2
+    real(b8), dimension(2) :: comNew, comOld
+    real(b8) :: sum1, sum2
 
     ! check if plrP = 0.0
     if( plrP == 0.0 )then
@@ -107,14 +107,14 @@ end function getBias
 
 
 ! calculate bias due to polarization
-real function getBias3( aSig, bSig, plrP, p, x, xtmp)
+real(b8) function getBias3( aSig, bSig, plrP, p, x, xtmp)
     implicit none
     integer, intent(in) :: aSig, bSig
-    real,    intent(in) :: plrP
-    real,    intent(in), dimension(:,:)   :: p
+    real(b8),    intent(in) :: plrP
+    real(b8),    intent(in), dimension(:,:)   :: p
     integer, intent(in), dimension(:,:,:) :: x, xtmp
-    real, dimension(2) :: comNew, comOld
-    real :: sum1, sum2
+    real(b8), dimension(2) :: comNew, comOld
+    real(b8) :: sum1, sum2
 
     ! check if plrP = 0.0
     if( plrP == 0.0 )then
@@ -153,12 +153,12 @@ end function getBias3
 
 
 ! calculate bias due to polarization
-real function getBias2( plrP, a, b, pa, pb)
+real(b8) function getBias2( plrP, a, b, pa, pb)
     implicit none
-    real,    intent(in) :: plrP
-    real,    intent(in), dimension(2) :: pa, pb
+    real(b8),    intent(in) :: plrP
+    real(b8),    intent(in), dimension(2) :: pa, pb
     integer, intent(in), dimension(2) :: a, b
-    real :: sum
+    real(b8) :: sum
 
     sum = 0.0
 

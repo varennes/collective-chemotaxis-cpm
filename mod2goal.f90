@@ -6,12 +6,12 @@ contains
 
 
 ! calculate the probability of step being executed
-real function probEval( uNew, uOld, w)
+real(b8) function probEval( uNew, uOld, w)
     ! uNew = Energy of potential, new configuration
     ! uOld = Energy of original configuration
     implicit none
-    real, intent(in) :: uNew, uOld, w
-    real :: du
+    real(b8), intent(in) :: uNew, uOld, w
+    real(b8) :: du
 
     ! calculate the change in the goal function
     du = uNew - uOld
@@ -23,7 +23,7 @@ end function probEval
 
 
 ! evaluate energy of the configuration
-real function goalEval1( A0, N, rSim, sigma, x)
+real(b8) function goalEval1( A0, N, rSim, sigma, x)
     ! A0 = preferred area of one cell
     ! L = number of lattice sites along one dimension
     ! N = total number of cells
@@ -36,7 +36,7 @@ real function goalEval1( A0, N, rSim, sigma, x)
     integer, intent(in), dimension(:,:,:) :: x
     integer, dimension(2) :: ls1, ls2
     integer :: i, nx, ny
-    real :: dA, J, lambda, sum1, sum2
+    real(b8) :: dA, J, lambda, sum1, sum2
 
     lambda = 1.0
 
@@ -73,7 +73,7 @@ end function goalEval1
 
 
 ! energy contribution due to J
-real function jCheck( ls1, ls2, sigma)
+real(b8) function jCheck( ls1, ls2, sigma)
     ! ls1 = 1st lattice site of interest - x
     ! ls2 = 2nd lattice site of interest - x'
     ! sigma = array of cell labels
@@ -83,7 +83,7 @@ real function jCheck( ls1, ls2, sigma)
     integer, dimension(:), intent(in) :: ls1, ls2
     integer, dimension(:,:), intent(in) :: sigma
     integer :: i, j
-    real :: alpha, beta
+    real(b8) :: alpha, beta
 
     alpha = 0.5
     beta  = 1.0
@@ -110,7 +110,7 @@ end function jCheck
 
 
 ! difference in area from preferred area of one cell
-real function aCheck( A0, xcell)
+real(b8) function aCheck( A0, xcell)
     ! A0 = preferred area of one cell
     ! xcell = array of the lattice points occupied by one cell
     ! a = area of one cell
@@ -118,7 +118,7 @@ real function aCheck( A0, xcell)
     integer, intent(in) :: A0
     integer, intent(in), dimension(:,:) :: xcell
     integer :: nl
-    real :: a
+    real(b8) :: a
 
     call occupyCount( nl, xcell )
     a = real(nl)

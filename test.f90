@@ -12,9 +12,10 @@ integer, dimension(2) :: r0, rCell, rSim
 
 integer, allocatable :: sigma(:,:), x(:,:,:)
 
-real, allocatable :: y(:)
-real, allocatable :: etaY(:), gNN(:,:), M(:,:), meanSignal(:), signal(:), meanY(:)
-real, dimension(2) :: xCOM
+real(b8) :: rx1, rx2
+real(b8), allocatable :: y(:)
+real(b8), allocatable :: etaY(:), gNN(:,:), M(:,:), meanSignal(:), signal(:), meanY(:)
+real(b8), dimension(2) :: xCOM
 
 ! initialize parameters, variables
 open(unit=11,file='input.txt',status='old',action='read')
@@ -79,7 +80,9 @@ enddo
 ! enddo
 
 do i = 2, rSim(1)+1
-    write(122,*) chemE( real(i), real(rSim(2)))
+    rx1 = real(i)
+    rx2 = real(rSim(2))
+    write(122,*) chemE( rx1, rx2)
 enddo
 
 call makeMtrxGamma( gNN, N, rSim, sigma, x)

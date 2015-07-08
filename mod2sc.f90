@@ -26,7 +26,7 @@ subroutine picka( a, edge, ne)
     integer, intent(in),  dimension(:,:) :: edge
     integer, intent(out), dimension(2)   :: a
     integer :: na
-    real :: r
+    real(b8) :: r
 
     call random_number(r)
     na = 1 + floor( real(ne)*r )
@@ -43,7 +43,7 @@ subroutine pickb( a, b, rSim)
     integer, intent(in),  dimension(2) :: a, rSim
     integer, intent(out), dimension(2) :: b
     integer :: i, j
-    real :: r
+    real(b8) :: r
 
     b = 0
     do while( b(1) == 0 )

@@ -2,30 +2,28 @@ module sensing
 
     use utility
 
-    ! b8 will be used to define reals with 14 digits
-    integer, parameter:: b8 = selected_real_kind(14)
-    real, parameter :: g = 0.0025000000
-    real, parameter :: gapFlow = 1.00000
-
-    real, parameter :: kappa = 1.0000, mu = 1.0000
+    real(b8), parameter :: g  = 0.250
+    real(b8), parameter :: g0 = 10.0
+    real(b8), parameter :: gapFlow = 1.0
+    real(b8), parameter :: kappa   = 1.0, mu = 1.0
 
 contains
 
 
 ! chemical concentration
-real function chemE( x, y)
+real(b8) function chemE( x, y)
     implicit none
-    real, intent(in) :: x, y
-    chemE = g*x + 1.05000
+    real(b8), intent(in) :: x, y
+    chemE = g*x + g0
 end function chemE
 
 
 ! mean signal in a cell
-real function getMeanSignal( xcell)
+real(b8) function getMeanSignal( xcell)
     implicit none
     integer, intent(in), dimension(:,:) :: xcell
     integer :: i, nl
-    real :: ds, s, x, y
+    real(b8) :: ds, s, x, y
 
     call occupyCount( nl, xcell )
 
@@ -43,9 +41,9 @@ end function getMeanSignal
 
 
 ! measured signal in a cell
-real function getCellSignal( meanSignal)
+real(b8) function getCellSignal( meanSignal)
     implicit none
-    real, intent(in) :: meanSignal
+    real(b8), intent(in) :: meanSignal
     real(b8) :: ms
 
     ms = meanSignal
@@ -57,11 +55,11 @@ end function getCellSignal
 
 
 ! local population of x species
-real function getLocalX( meanSignal, signal)
+real(b8) function getLocalX( meanSignal, signal)
     implicit none
-    real, intent(in) :: meanSignal, signal
+    real(b8), intent(in) :: meanSignal, signal
     real(b8) :: m = 0.0, s = 1.0
-    real :: xi2, xi3, etaX, meanX
+    real(b8) :: xi2, xi3, etaX, meanX
 
     meanX = meanSignal*kappa/mu
     xi2 = normal( m, s)
@@ -79,10 +77,10 @@ end function getLocalX
 subroutine getSpeciesY( etaY, M, N, signal, y)
     implicit none
     integer, intent(in) :: N
-    real,    intent(in),  dimension(:,:) :: M
-    real,    intent(in),  dimension(:)   :: etaY, signal
-    real,    intent(out), dimension(:)   :: y
-    real, allocatable :: b(:), a(:,:)
+    real(b8),    intent(in),  dimension(:,:) :: M
+    real(b8),    intent(in),  dimension(:)   :: etaY, signal
+    real(b8),    intent(out), dimension(:)   :: y
+    real(b8), allocatable :: b(:), a(:,:)
     integer :: i
 
     allocate( b(N) )
@@ -105,10 +103,10 @@ end subroutine getSpeciesY
 subroutine getMeanY( meanSignal, M, meanY, N)
     implicit none
     integer, intent(in) :: N
-    real,    intent(in),  dimension(:,:) :: M
-    real,    intent(in),  dimension(:)   :: meanSignal
-    real,    intent(out), dimension(:)   :: meanY
-    real, allocatable :: b(:), a(:,:)
+    real(b8),    intent(in),  dimension(:,:) :: M
+    real(b8),    intent(in),  dimension(:)   :: meanSignal
+    real(b8),    intent(out), dimension(:)   :: meanY
+    real(b8), allocatable :: b(:), a(:,:)
 
     allocate( b(N) )
     allocate( a(N,N) )
@@ -126,11 +124,11 @@ end subroutine
 subroutine getEtaY( etaY, gNN, meanS, meanY, N)
     implicit none
     integer, intent(in) :: N
-    real,    intent(in),  dimension(:,:) :: gNN
-    real,    intent(in),  dimension(:)   :: meanS, meanY
-    real,    intent(out), dimension(:)   :: etaY
+    real(b8),    intent(in),  dimension(:,:) :: gNN
+    real(b8),    intent(in),  dimension(:)   :: meanS, meanY
+    real(b8),    intent(out), dimension(:)   :: etaY
     real(b8) :: m = 0.0, s = 1.0
-    real :: xi4, xi5, chiJ, sum1
+    real(b8) :: xi4, xi5, chiJ, sum1
     integer :: i, j
 
     etaY = 0.0
@@ -156,8 +154,8 @@ end subroutine getEtaY
 subroutine makeMtrxM( gNN, M, N)
     implicit none
     integer, intent(in) :: N
-    real,    intent(in),  dimension(:,:) :: gNN
-    real,    intent(out), dimension(:,:) :: M
+    real(b8),    intent(in),  dimension(:,:) :: gNN
+    real(b8),    intent(out), dimension(:,:) :: M
     integer :: j, k
 
     M = 0.0
@@ -177,7 +175,7 @@ end subroutine makeMtrxM
 subroutine makeMtrxGamma( gNN, N, rSim, sigma, x)
     implicit none
     integer, intent(in) :: N
-    real,    intent(inout), dimension(:,:)   :: gNN
+    real(b8),    intent(inout), dimension(:,:)   :: gNN
     integer, intent(in),    dimension(:,:)   :: sigma
     integer, intent(in),    dimension(:,:,:) :: x
     integer, dimension(2) :: nn, rSim
@@ -274,8 +272,8 @@ subroutine gauss_1(a,b,x,n)
     !===========================================================
     implicit none
     integer n
-    real a(n,n), b(n), x(n)
-    real c
+    real(b8) a(n,n), b(n), x(n)
+    real(b8) c
     integer i, j, k
     !step 1: forward elimination
     !    print*,'hi'

@@ -1,5 +1,8 @@
 module utility
 
+    ! b8 will be used to define reals with 14 digits
+    integer, parameter:: b8 = selected_real_kind(14)
+
 contains
 
 
@@ -125,7 +128,7 @@ subroutine calcXCOM( N, x, xCOMt)
     implicit none
     integer, intent(in) :: N
     integer, intent(in),  dimension(:,:,:) :: x
-    real,    intent(out), dimension(:)     :: xCOMt
+    real(b8),    intent(out), dimension(:)     :: xCOMt
     integer :: i, j, k, nl, nlSum
 
     nlSum = 0
@@ -149,11 +152,11 @@ end subroutine calcXCOM
 
 
 ! calculate displacement along one dimension
-real function calcD( xCOMt, x0)
+real(b8) function calcD( xCOMt, x0)
     ! xCOMt = COM position of cell group at a pre-set time
     ! x0 = initial COM position of cell group
     implicit none
-    real, intent(in) :: xCOMt, x0
+    real(b8), intent(in) :: xCOMt, x0
 
     calcD = xCOMt - x0
 
@@ -161,11 +164,11 @@ end function calcD
 
 
 ! calculate displacement along one dimension
-real function calcMSD( xCOMt, x0)
+real(b8) function calcMSD( xCOMt, x0)
     ! xCOMt = COM array of cell group at a pre-set time
     ! x0 = initial COM array of cell group
     implicit none
-    real, intent(in), dimension(2) :: xCOMt, x0
+    real(b8), intent(in), dimension(2) :: xCOMt, x0
 
     calcMSD = (xCOMt(1)-x0(1))**2.0 + (xCOMt(2)-x0(2))**2.0
 

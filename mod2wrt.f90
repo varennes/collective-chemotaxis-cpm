@@ -1,5 +1,7 @@
 module wrtout
 
+use utility
+
 contains
 
 
@@ -40,7 +42,7 @@ end subroutine wrtAB
 subroutine wrtU( uNew, uOld, p, r, tstep)
     implicit none
     integer, intent(in) :: tstep
-    real, intent(in) ::  uNew, uOld, p, r
+    real(b8), intent(in) ::  uNew, uOld, p, r
 
     write(104,*) uNew, uOld, p, r, tstep-1
 end subroutine wrtU
@@ -119,7 +121,7 @@ end subroutine wrtEdgeArray
 subroutine wrtPolar( N, p, tstep)
     implicit none
     integer, intent(in) :: N, tstep
-    real,    intent(in), dimension(:,:) :: p
+    real(b8),    intent(in), dimension(:,:) :: p
     integer :: i
 
     do i = 1, N
