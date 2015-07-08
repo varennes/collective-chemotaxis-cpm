@@ -23,13 +23,13 @@ integer, allocatable :: x(:,:,:), xTmp(:,:,:)
 integer, allocatable :: edge(:,:), filled(:,:), node(:)
 integer, dimension(2) :: a, b, nn
 
-real, allocatable :: p(:,:), cellCOM(:,:), cellCOMold(:,:)
-real :: plrP, plrR
+real(b8), allocatable :: p(:,:), cellCOM(:,:), cellCOMold(:,:)
+real(b8) :: plrP, plrR
 
-real, allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
-real :: d, df, prob, r, uNew, uOld, w
-real :: neMean, neMeanRun
-real :: t0, tf
+real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
+real(b8) :: d, df, prob, r, uNew, uOld, w
+real(b8) :: neMean, neMeanRun
+real(b8) :: t0, tf
 
 call cpu_time(t0)
 
