@@ -64,7 +64,7 @@ write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
-eps = 1.0
+eps = 0.5
 speciesR0 = g * sqrt( N * A0**3.0 )
 
 call init_random_seed()
@@ -121,6 +121,7 @@ filled = 0
 
 x    = 0
 xTmp = 0
+dXtMCS   = 0.0
 sigma    = 0
 sigmaTmp = 0
 
@@ -166,6 +167,7 @@ call makeMtrxM( gNN, M, N)
 call getMeanY( meanSignal, M, meanY, N)
 call getEtaY( etaY, gNN, meanSignal, meanY, N)
 call getSpeciesY( etaY, M, N, signal, speciesY)
+speciesR = speciesX - speciesY
 
 ! calculate initial energy
 rSim(1) = x1 + x2
@@ -229,6 +231,7 @@ do while( tMCS < tmax )
             bSig = sigma(b(1),b(2))
 
             w = getBias( aSig, bSig, plrP, p, x, xtmp)
+            ! w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
 
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
@@ -279,6 +282,7 @@ do while( tMCS < tmax )
         call getMeanY( meanSignal, M, meanY, N)
         call getEtaY( etaY, gNN, meanSignal, meanY, N)
         call getSpeciesY( etaY, M, N, signal, speciesY)
+        speciesR = speciesX - speciesY
 
         ! update polarization vector
         do i = 1, N

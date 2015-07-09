@@ -133,7 +133,7 @@ real(b8) function getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
     getBias2 = 0.0
 
     sum1 = 0.0
-    if( aSig /= 0 )then
+    if( aSig /= 0 .AND. dXtMCS(aSig) /= 0.0 )then
         call calcCellCOM(    x(aSig,:,:), comOld)
         call calcCellCOM( xtmp(aSig,:,:), comNew)
 
@@ -146,7 +146,7 @@ real(b8) function getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
     endif
 
     sum2 = 0.0
-    if( bSig /= 0 )then
+    if( bSig /= 0 .AND. dXtMCS(bSig) /= 0.0 )then
         call calcCellCOM(    x(bSig,:,:), comOld)
         call calcCellCOM( xtmp(bSig,:,:), comNew)
 
