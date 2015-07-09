@@ -2,6 +2,9 @@ module goal
 
 use utility
 
+real(b8), parameter :: alpha = 0.5, beta = 1.0
+real(b8), parameter :: lambda = 1.0
+
 contains
 
 
@@ -36,9 +39,7 @@ real(b8) function goalEval1( A0, N, rSim, sigma, x)
     integer, intent(in), dimension(:,:,:) :: x
     integer, dimension(2) :: ls1, ls2
     integer :: i, nx, ny
-    real(b8) :: dA, J, lambda, sum1, sum2
-
-    lambda = 1.0
+    real(b8) :: dA, J, sum1, sum2
 
     ! sum energy contribution due to J
     sum1 = 0.0
@@ -83,10 +84,6 @@ real(b8) function jCheck( ls1, ls2, sigma)
     integer, dimension(:), intent(in) :: ls1, ls2
     integer, dimension(:,:), intent(in) :: sigma
     integer :: i, j
-    real(b8) :: alpha, beta
-
-    alpha = 0.5
-    beta  = 1.0
 
     i = sigma(ls1(1),ls1(2))
 

@@ -178,7 +178,8 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
+call wrtXR( N, x, speciesR, tELEM)
 do i = 1, N
     write(155,*) cellCOM(i,:), tELEM - 1
 enddo
@@ -298,7 +299,8 @@ do while( tMCS < tmax )
         ! call wrtSigma( rSim, sigma, tMCS)
         call wrtPolar( N, p, tMCS)
         ! write(150,*) xCOM(tMCS,:), tMCS
-        call wrtX( N, x, tMCS)
+        ! call wrtX( N, x, tMCS)
+        call wrtXR( N, x, speciesR, tMCS)
         do i = 1, N
             write(155,*) cellCOM(i,:), tMCS - 1
         enddo

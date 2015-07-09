@@ -72,6 +72,31 @@ subroutine wrtX( N, x, tstep)
 end subroutine wrtX
 
 
+! outputs x to fort.175
+subroutine wrtXR( N, x, speciesR, tstep)
+    ! rlxArea = preferred area of one cell
+    ! L = number of lattice sites along one dimension
+    ! N = total number of cells
+    ! sigma = array of cell labels
+    ! x = array of all the cells lattice sites
+    implicit none
+    integer,  intent(in) :: N, tstep
+    integer,  intent(in), dimension(:,:,:) :: x
+    real(b8), intent(in), dimension(:)     :: speciesR
+    integer :: i, j
+
+    ! write out x array
+    do i = 1, N
+        j = 1
+        do while( x(i,j,1) /= 0 )
+            write(175,*) x(i,j,1), x(i,j,2), speciesR(i), tstep-1
+            j = j + 1
+        enddo
+    enddo
+
+end subroutine wrtXR
+
+
 ! outputs edge to fort.103
 subroutine wrtEdge( edge, rSim, sigma, tstep)
     ! L = number of lattice sites along one dimension
