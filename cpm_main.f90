@@ -6,6 +6,7 @@ program cpmcollab
 use utility
 use goal
 use polar
+use sensing
 use simpleconnect
 use wrtout
 
@@ -23,13 +24,17 @@ integer, allocatable :: x(:,:,:), xTmp(:,:,:)
 integer, allocatable :: edge(:,:), filled(:,:), node(:)
 integer, dimension(2) :: a, b, nn
 
-real(b8), allocatable :: p(:,:), cellCOM(:,:), cellCOMold(:,:)
+real(b8), allocatable :: dXtMCS(:), p(:,:), cellCOM(:,:), cellCOMold(:,:)
 real(b8) :: plrP, plrR
 
 real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
 real(b8) :: d, df, prob, r, uNew, uOld, w
 real(b8) :: neMean, neMeanRun
 real(b8) :: t0, tf
+
+real(b8) :: eps, rx1, rx2, speciesR0
+real(b8), allocatable :: signal(:), meanSignal(:), speciesR(:), speciesX(:), speciesY(:), meanY(:)
+real(b8), allocatable :: etaY(:), gNN(:,:), M(:,:)
 
 call cpu_time(t0)
 
@@ -59,6 +64,9 @@ write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
+eps = 1.0
+speciesR0 = g * sqrt( N * A0**3.0 )
+
 call init_random_seed()
 
 allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
@@ -78,10 +86,26 @@ allocate( firstpass(runTotal) )
 allocate( p(N,2) )
 allocate( cellCOM(N,2) )
 allocate( cellCOMold(N,2) )
+allocate( dXtMCS(N) )
+allocate( signal(N) )
+allocate( meanSignal(N) )
+allocate( speciesR(N) )
+allocate( speciesX(N) )
+allocate( meanY(N) )
+allocate( speciesY(N) )
+allocate(  etaY(N) )
+allocate( gNN(N,N) )
+allocate(   M(N,N) )
 
 MSDrun    = 0.0
 neMeanrun = 0.0
 firstpass = 0.0
+
+do i = 2, rSim(1)+1
+    rx1 = real(i)
+    rx2 = real(rSim(2))
+    write(122,*) chemE( rx1, rx2)
+enddo
 
 do nRun = 1, runTotal
 
@@ -130,6 +154,19 @@ cellCOMold = cellCOM
 ! initialize polarization
 call itlPolar( N, plrP, p)
 
+! initializing signaling, sensing
+call getMeanSignal( meanSignal, N, x)
+call getSpeciesS( meanSignal, N, signal)
+call getSpeciesX( N, meanSignal, signal, speciesX)
+
+rSim(1) = x1 + x2
+call makeMtrxGamma( gNN, N, rSim, sigma, x)
+call makeMtrxM( gNN, M, N)
+
+call getMeanY( meanSignal, M, meanY, N)
+call getEtaY( etaY, gNN, meanSignal, meanY, N)
+call getSpeciesY( etaY, M, N, signal, speciesY)
+
 ! calculate initial energy
 rSim(1) = x1 + x2
 uOld = goalEval1( A0, N, rSim, sigma, x)
@@ -140,7 +177,12 @@ uNew = 0.0
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
-! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtX( N, x, tELEM)
+do i = 1, N
+    write(155,*) cellCOM(i,:), tELEM - 1
+enddo
+
 
 do while( tMCS < tmax )
     tELEM = tELEM + 1
@@ -185,7 +227,7 @@ do while( tMCS < tmax )
             aSig = sigma(a(1),a(2))
             bSig = sigma(b(1),b(2))
 
-            w = getBias3( aSig, bSig, plrP, p, x, xtmp)
+            w = getBias( aSig, bSig, plrP, p, x, xtmp)
 
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
@@ -225,10 +267,25 @@ do while( tMCS < tmax )
 
         neMean = neMean + real(ne)
 
+        ! updated signalling, sensing
+        call getMeanSignal( meanSignal, N, x)
+        call getSpeciesS( meanSignal, N, signal)
+        call getSpeciesX( N, meanSignal, signal, speciesX)
+
+        call makeMtrxGamma( gNN, N, rSim, sigma, x)
+        call makeMtrxM( gNN, M, N)
+
+        call getMeanY( meanSignal, M, meanY, N)
+        call getEtaY( etaY, gNN, meanSignal, meanY, N)
+        call getSpeciesY( etaY, M, N, signal, speciesY)
+
         ! update polarization vector
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
-            call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
+
+            ! call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
+            call getPolar2( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+            dXtMCS(i) = sqrt( dot_product( cellCOM(i,:)-cellCOMold(i,:), cellCOM(i,:)-cellCOMold(i,:) ) )
         enddo
         cellCOMold = cellCOM
 
@@ -239,9 +296,12 @@ do while( tMCS < tmax )
 
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
-        ! call wrtPolar( N, p, tMCS)
+        call wrtPolar( N, p, tMCS)
         ! write(150,*) xCOM(tMCS,:), tMCS
-        ! call wrtX( N, x, tMCS)
+        call wrtX( N, x, tMCS)
+        do i = 1, N
+            write(155,*) cellCOM(i,:), tMCS - 1
+        enddo
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))

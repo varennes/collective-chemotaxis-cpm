@@ -2,8 +2,8 @@ module sensing
 
     use utility
 
-    real(b8), parameter :: g  = 0.250
-    real(b8), parameter :: g0 = 10.0
+    real(b8), parameter :: g  = 0.5
+    real(b8), parameter :: g0 = 15.0
     real(b8), parameter :: gapFlow = 1.0
     real(b8), parameter :: kappa   = 1.0, mu = 1.0
 
@@ -18,59 +18,76 @@ real(b8) function chemE( x, y)
 end function chemE
 
 
-! mean signal in a cell
-real(b8) function getMeanSignal( xcell)
+! mean signal in every cell
+subroutine getMeanSignal( meanSignal, N, x)
     implicit none
-    integer, intent(in), dimension(:,:) :: xcell
-    integer :: i, nl
-    real(b8) :: ds, s, x, y
+    integer,  intent(in) :: N
+    integer,  intent(in),  dimension(:,:,:) :: x
+    real(b8), intent(out), dimension(:)     :: meanSignal
+    integer :: i, j, nl
+    real(b8) :: ds, s, rx, ry
 
-    call occupyCount( nl, xcell )
+    meanSignal = 0.0
+    do i = 1, N
+        call occupyCount( nl, x(i,:,:) )
+        s = 0.0
+        do j = 1, nl
+            rx  = real(x(i,j,1))
+            ry  = real(x(i,j,2))
+            ds = chemE( rx, ry)
+            s  = s + ds
+        enddo
 
-    s = 0.000000
-    do i = 1, nl
-        x  = real(xcell(i,1))
-        y  = real(xcell(i,2))
-        ds = chemE( x, y)
-        s  = s + ds
+        meanSignal(i) = s / real(nl)
     enddo
 
-    getMeanSignal = s / real(nl)
-
-end function getMeanSignal
+end subroutine getMeanSignal
 
 
-! measured signal in a cell
-real(b8) function getCellSignal( meanSignal)
+! measured signal in every cell
+subroutine getSpeciesS( meanSignal, N, signal)
     implicit none
-    real(b8), intent(in) :: meanSignal
+    integer,  intent(in) :: N
+    real(b8), intent(in),  dimension(:) :: meanSignal
+    real(b8), intent(out), dimension(:) :: signal
     real(b8) :: ms
+    integer :: i
 
-    ms = meanSignal
-    getCellSignal = normal(ms,ms)
-    if( getCellSignal < 0.0 )then
-        getCellSignal = 0.00000
-    endif
-end function getCellSignal
+    signal = 0.0
+    do i = 1, N
+        ms = meanSignal(i)
+        signal(i) = normal(ms,sqrt(ms))
+        if( signal(i) < 0.0 )then
+            signal(i) = 0.0
+        endif
+    enddo
+end subroutine getSpeciesS
 
 
-! local population of x species
-real(b8) function getLocalX( meanSignal, signal)
+! calculate population of x species
+subroutine getSpeciesX( N, meanSignal, signal, speciesX)
     implicit none
-    real(b8), intent(in) :: meanSignal, signal
+    integer, intent(in) :: N
+    real(b8), intent(in),  dimension(:) :: meanSignal, signal
+    real(b8), intent(out), dimension(:) :: speciesX
     real(b8) :: m = 0.0, s = 1.0
     real(b8) :: xi2, xi3, etaX, meanX
+    integer :: i
 
-    meanX = meanSignal*kappa/mu
-    xi2 = normal( m, s)
-    xi3 = normal( m, s)
-    etaX = sqrt(kappa*meanSignal)*xi2 - sqrt(mu*meanX)*xi3
+    speciesX = 0.0
 
-    getLocalX = signal*kappa/mu + etaX/mu
-    if( getLocalX < 0.0 )then
-        getLocalX = 0.0
-    endif
-end function getLocalX
+    do i = 1, N
+        meanX = meanSignal(i)*kappa/mu
+        xi2 = normal( m, s)
+        xi3 = normal( m, s)
+        etaX = sqrt(kappa*meanSignal(i))*xi2 - sqrt(mu*meanX)*xi3
+
+        speciesX(i) = signal(i)*kappa/mu + etaX/mu
+        if( speciesX(i) < 0.0 )then
+            speciesX(i) = 0.0
+        endif
+    enddo
+end subroutine getSpeciesX
 
 
 ! calculate population of y species

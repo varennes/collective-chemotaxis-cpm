@@ -17,6 +17,18 @@ subroutine getPolar( p, plrR, comNew, comOld)
 end subroutine getPolar
 
 
+! update the polarization vector with sensing
+subroutine getPolar2( p, plrR, eps, R0, Rk, comNew, comOld)
+    implicit none
+    real(b8), intent(in) :: plrR, eps, R0, Rk
+    real(b8), intent(inout), dimension(2) :: p
+    real(b8), intent(in),    dimension(2) :: comNew, comOld
+
+    p = (1.0 - plrR) * p + eps * Rk/R0 * (COMnew - COMold)
+
+end subroutine getPolar2
+
+
 ! initialize the polarization vectors
 subroutine itlPolar( N, plrP, p)
     implicit none
@@ -85,50 +97,6 @@ real(b8) function getBias( aSig, bSig, plrP, p, x, xtmp)
 
             if( sum1 /= 0.0 )then
                 sum1 = sum1 / sqrt( dot_product( p(aSig,:),p(aSig,:) ) )
-            endif
-        endif
-
-        sum2 = 0.0
-        if( bSig /= 0 )then
-            call calcCellCOM(    x(bSig,:,:), comOld)
-            call calcCellCOM( xtmp(bSig,:,:), comNew)
-
-            sum2 = dot_product( (comNew-comOld), p(bSig,:))
-
-            if( sum2 /= 0.0 )then
-                sum2 = sum2 / sqrt( dot_product( p(bSig,:),p(bSig,:) ) )
-            endif
-        endif
-
-        getBias = plrP * (sum1 + sum2)
-    endif
-
-end function getBias
-
-
-! calculate bias due to polarization
-real(b8) function getBias3( aSig, bSig, plrP, p, x, xtmp)
-    implicit none
-    integer, intent(in) :: aSig, bSig
-    real(b8),    intent(in) :: plrP
-    real(b8),    intent(in), dimension(:,:)   :: p
-    integer, intent(in), dimension(:,:,:) :: x, xtmp
-    real(b8), dimension(2) :: comNew, comOld
-    real(b8) :: sum1, sum2
-
-    ! check if plrP = 0.0
-    if( plrP == 0.0 )then
-        getBias3 = 0.0
-    else
-        sum1 = 0.0
-        if( aSig /= 0 )then
-            call calcCellCOM(    x(aSig,:,:), comOld)
-            call calcCellCOM( xtmp(aSig,:,:), comNew)
-
-            sum1 = dot_product( (comNew-comOld), p(aSig,:))
-
-            if( sum1 /= 0.0 )then
-                sum1 = sum1 / sqrt( dot_product( p(aSig,:),p(aSig,:) ) )
                 sum1 = sum1 / sqrt( dot_product( (comNew-comOld), (comNew-comOld)) )
             endif
         endif
@@ -146,36 +114,53 @@ real(b8) function getBias3( aSig, bSig, plrP, p, x, xtmp)
             endif
         endif
 
-        getBias3 = plrP * (sum1 + sum2)
+        getBias = plrP * (sum1 + sum2)
     endif
 
-end function getBias3
+end function getBias
 
 
-! calculate bias due to polarization
-real(b8) function getBias2( plrP, a, b, pa, pb)
+! calculate bias due to polarization with sensing
+real(b8) function getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
     implicit none
-    real(b8),    intent(in) :: plrP
-    real(b8),    intent(in), dimension(2) :: pa, pb
-    integer, intent(in), dimension(2) :: a, b
-    real(b8) :: sum
+    integer,  intent(in) :: aSig, bSig
+    real(b8), intent(in), dimension(:)     :: dXtMCS
+    real(b8), intent(in), dimension(:,:)   :: p
+    integer,  intent(in), dimension(:,:,:) :: x, xtmp
+    real(b8), dimension(2) :: comNew, comOld
+    real(b8) :: sum1, sum2
 
-    sum = 0.0
+    getBias2 = 0.0
 
-    if( dot_product(pa,pa) == 0.0 )then
-        ! do nothing
-    else
-        sum = sum + dot_product( pa, (b-a)) / sqrt( dot_product(pa,pa))
+    sum1 = 0.0
+    if( aSig /= 0 )then
+        call calcCellCOM(    x(aSig,:,:), comOld)
+        call calcCellCOM( xtmp(aSig,:,:), comNew)
+
+        sum1 = dot_product( (comNew-comOld), p(aSig,:))
+
+        if( sum1 /= 0.0 )then
+            sum1 = sum1 / dXtMCS(aSig)
+            sum1 = sum1 / sqrt( dot_product( (comNew-comOld), (comNew-comOld)) )
+        endif
     endif
 
-    if( dot_product(pb,pb) == 0.0 )then
-        ! do nothing
-    else
-        sum = sum + dot_product( pb, (b-a)) / sqrt( dot_product(pb,pb))
+    sum2 = 0.0
+    if( bSig /= 0 )then
+        call calcCellCOM(    x(bSig,:,:), comOld)
+        call calcCellCOM( xtmp(bSig,:,:), comNew)
+
+        sum2 = dot_product( (comNew-comOld), p(bSig,:))
+
+        if( sum2 /= 0.0 )then
+            sum2 = sum2 / dXtMCS(bSig)
+            sum2 = sum2 / sqrt( dot_product( (comNew-comOld), (comNew-comOld)) )
+        endif
     endif
 
-    getBias2 = plrP * sum
+    getBias2 = sum1 + sum2
 
 end function getBias2
+
 
 end module

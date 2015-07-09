@@ -1,6 +1,7 @@
 program test1
 
 use utility
+use polar
 use sensing
 use wrtout
 
@@ -13,7 +14,7 @@ integer, dimension(2) :: r0, rCell, rSim
 integer, allocatable :: sigma(:,:), x(:,:,:)
 
 real(b8) :: rx1, rx2
-real(b8), allocatable :: y(:)
+real(b8), allocatable :: cellCOM(:,:), speciesR(:), speciesX(:), speciesY(:)
 real(b8), allocatable :: etaY(:), gNN(:,:), M(:,:), meanSignal(:), signal(:), meanY(:)
 real(b8), dimension(2) :: xCOM
 
@@ -48,12 +49,16 @@ call init_random_seed()
 allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
 allocate(     x( N, 4*A0, 2) )
 allocate( meanSignal(N) )
-allocate( y(N) )
+allocate( speciesR(N) )
+allocate( speciesX(N) )
+allocate( speciesY(N) )
 allocate( meanY(N) )
 allocate(  etaY(N) )
 allocate( signal(N) )
 allocate( gNN(N,N) )
 allocate(   M(N,N) )
+
+allocate( cellCOM(N,2) )
 
 x    = 0
 sigma    = 0
@@ -62,22 +67,16 @@ sigma    = 0
 rSim(1) = x1
 call itlSigma( r0, rCell, rSim, sigma)
 
-call wrtSigma( rSim, sigma, 1)
+! call wrtSigma( rSim, sigma, 1)
 
 ! initialize x array
 rSim(1) = x1
 call makeX( N, rSim, sigma, x)
 
 do i = 1, N
-    meanSignal(i) = getMeanSignal( x(i,:,:))
-    signal(i) = getCellSignal( meanSignal(i))
+    call calcCellCOM( x(i,:,:),  cellCOM(i,:))
+    write(155,*) cellCOM(i,:), i
 enddo
-
-
-! do i = 1, 1000
-!     write(111,*) getCellSignal( meanSignal(1))
-!     write(112,*) getLocalX( meanSignal(1), signal(1))
-! enddo
 
 do i = 2, rSim(1)+1
     rx1 = real(i)
@@ -85,35 +84,45 @@ do i = 2, rSim(1)+1
     write(122,*) chemE( rx1, rx2)
 enddo
 
+call getMeanSignal( meanSignal, N, x)
+call getSpeciesS( meanSignal, N, signal)
+
+call getSpeciesX( N, meanSignal, signal, speciesX)
+
 call makeMtrxGamma( gNN, N, rSim, sigma, x)
 call makeMtrxM( gNN, M, N)
+
 call getMeanY( meanSignal, M, meanY, N)
-
-do i = 1, N
-    write(133,*) gNN(i,:)
-    write(144,*)   M(i,:)
-enddo
-
-call calcXCOM( N, x, xCOM)
-
 call getEtaY( etaY, gNN, meanSignal, meanY, N)
 
-call getSpeciesY( etaY, M, N, signal, y)
+call getSpeciesY( etaY, M, N, signal, speciesY)
+
+! do i = 1, N
+!     write(133,*) gNN(i,:)
+!     write(144,*)   M(i,:)
+! enddo
+
 
 do i = 1, 1000
-    write(111,*) getCellSignal( meanSignal(1))
-    write(112,*) getLocalX( meanSignal(1), signal(1))
+    call getSpeciesS( meanSignal, N, signal)
+    call getSpeciesX( N, meanSignal, signal, speciesX)
     call getEtaY( etaY, gNN, meanSignal, meanY, N)
-    call getSpeciesY( etaY, M, N, signal, y)
-    write(113,*) y(1)
+    call getSpeciesY( etaY, M, N, signal, speciesY)
+
+    speciesR = speciesX - speciesY
+
+    write(111,*) signal(:)
+    write(112,*) speciesX(:)
+    write(113,*) speciesY(:)
+    write(114,*) speciesR(:)
 enddo
 
 write(*,*) 'N =', N
-write(*,*) '      xCOM =', xCOM
+! write(*,*) '      xCOM =', xCOM
 write(*,*) 'meanSignal =', meanSignal
 write(*,*)
 write(*,*) '     meanY =', meanY
-write(*,*) '         y =', y
+write(*,*) '  speciesY =', speciesY
 
 end program
 
