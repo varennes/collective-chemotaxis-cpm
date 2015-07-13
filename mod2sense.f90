@@ -235,30 +235,28 @@ end subroutine makeMtrxGamma
 
 
 ! calculate cell k's contanct lengths with all its neighbors
-subroutine getContactL( N, nnLk, rSim, sigma, x)
+subroutine getContactL( k, N, nnLk, rSim, sigma, xcell)
     implicit none
     integer, intent(in) :: N
-    integer, intent(out), dimension(:)     :: nnLk(:)
-    integer, intent(in),  dimension(:,:)   :: sigma
-    integer, intent(in),  dimension(:,:,:) :: x
+    integer, intent(out), dimension(:)   :: nnLk(:)
+    integer, intent(in),  dimension(:,:) :: sigma
+    integer, intent(in),  dimension(:,:) :: xcell
     integer, dimension(2) :: nn, rSim
     integer :: i, inn, j, k, nl
 
     nnLk = 0
 
-    do j = 1, N
-        call occupyCount( nl, x(j,:,:) )
+    call occupyCount( nl, xcell)
 
-        do i = 1, nl
-            do inn = 1, 4
-                call nnGet( inn, nn, rSim, x(j,i,1:2))
-                if( nn(1) == 0 )then
-                    cycle
-                endif
-                if( sigma(nn(1),nn(2)) /= j .AND. sigma(nn(1),nn(2)) /= 0 )then
-                    nnLk( sigma(nn(1),nn(2))) = nnLk( sigma(nn(1),nn(2))) + 1
-                endif
-            enddo
+    do i = 1, nl
+        do inn = 1, 4
+            call nnGet( inn, nn, rSim, xcell(i,1:2))
+            if( nn(1) == 0 )then
+                cycle
+            endif
+            if( sigma(nn(1),nn(2)) /= k .AND. sigma(nn(1),nn(2)) /= 0 )then
+                nnLk( sigma(nn(1),nn(2))) = nnLk( sigma(nn(1),nn(2))) + 1
+            endif
         enddo
     enddo
 

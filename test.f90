@@ -11,7 +11,7 @@ integer :: i, j, ne, ne0, nf, nl, check, aSig, bSig
 integer :: A0, N, x1, x2
 integer, dimension(2) :: r0, rCell, rSim
 
-integer, allocatable :: sigma(:,:), x(:,:,:)
+integer, allocatable :: sigma(:,:), x(:,:,:), nnL(:,:)
 
 real(b8) :: rx1, rx2
 real(b8), allocatable :: cellCOM(:,:), speciesR(:), speciesX(:), speciesY(:)
@@ -46,6 +46,7 @@ write(*,*)
 
 call init_random_seed()
 
+allocate( nnL(N,N) )
 allocate(    sigma( rSim(1) + 2, rSim(2) + 2) )
 allocate(     x( N, 4*A0, 2) )
 allocate( meanSignal(N) )
@@ -72,6 +73,11 @@ call itlSigma( r0, rCell, rSim, sigma)
 ! initialize x array
 rSim(1) = x1
 call makeX( N, rSim, sigma, x)
+
+! calculate contact lengths
+do i = 1, N
+    call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
+enddo
 
 do i = 1, N
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
@@ -121,8 +127,10 @@ write(*,*) 'N =', N
 ! write(*,*) '      xCOM =', xCOM
 write(*,*) 'meanSignal =', meanSignal
 write(*,*)
-write(*,*) '     meanY =', meanY
-write(*,*) '  speciesY =', speciesY
+write(*,*) '  contact lengths'
+do i = 1, N
+    write(*,*) ' cell',i,'nnL =',nnL(i,:)
+enddo
 
 end program
 
