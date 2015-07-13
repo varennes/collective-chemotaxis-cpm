@@ -2,9 +2,9 @@ module sensing
 
     use utility
 
-    real(b8), parameter :: g  = 4.0
-    real(b8), parameter :: g0 = 10.0
-    real(b8), parameter :: gapFlow = 1.0
+    real(b8), parameter :: g  = 15.0
+    real(b8), parameter :: g0 = 100.0
+    real(b8), parameter :: gapFlow = 2.0
     real(b8), parameter :: kappa   = 1.0, mu = 1.0
 
 contains
@@ -115,6 +115,7 @@ subroutine getSpeciesY( etaY, M, N, signal, y)
     deallocate( a )
     deallocate( b )
 end subroutine getSpeciesY
+
 
 ! calculates mean y values for all cells
 subroutine getMeanY( meanSignal, M, meanY, N)
@@ -231,6 +232,37 @@ subroutine makeMtrxGamma( gNN, N, rSim, sigma, x)
     enddo
 
 end subroutine makeMtrxGamma
+
+
+! calculate cell k's contanct lengths with all its neighbors
+subroutine getContactL( N, nnLk, rSim, sigma, x)
+    implicit none
+    integer, intent(in) :: N
+    integer, intent(out), dimension(:)     :: nnLk(:)
+    integer, intent(in),  dimension(:,:)   :: sigma
+    integer, intent(in),  dimension(:,:,:) :: x
+    integer, dimension(2) :: nn, rSim
+    integer :: i, inn, j, k, nl
+
+    nnLk = 0
+
+    do j = 1, N
+        call occupyCount( nl, x(j,:,:) )
+
+        do i = 1, nl
+            do inn = 1, 4
+                call nnGet( inn, nn, rSim, x(j,i,1:2))
+                if( nn(1) == 0 )then
+                    cycle
+                endif
+                if( sigma(nn(1),nn(2)) /= j .AND. sigma(nn(1),nn(2)) /= 0 )then
+                    nnLk( sigma(nn(1),nn(2))) = nnLk( sigma(nn(1),nn(2))) + 1
+                endif
+            enddo
+        enddo
+    enddo
+
+end subroutine getContactL
 
 
 ! returns random number between 0 - 1

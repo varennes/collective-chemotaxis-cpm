@@ -29,6 +29,18 @@ subroutine getPolar2( p, plrR, eps, R0, Rk, comNew, comOld)
 end subroutine getPolar2
 
 
+! update the polarization vector with sensing V2
+subroutine getPolar3( p, plrR, eps, R0, Rk, comNew, comOld)
+    implicit none
+    real(b8), intent(in) :: plrR, eps, R0, Rk
+    real(b8), intent(inout), dimension(2) :: p
+    real(b8), intent(in),    dimension(2) :: comNew, comOld
+
+    p = (1.0 - plrR) * p + (0.1 + eps * Rk/R0) * (COMnew - COMold)
+
+end subroutine getPolar3
+
+
 ! initialize the polarization vectors
 subroutine itlPolar( N, plrP, p)
     implicit none

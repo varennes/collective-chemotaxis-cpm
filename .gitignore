@@ -7,6 +7,9 @@ fort.*
 # no .mod files
 *.mod
 
+# no python files
+*.py
+
 # no input.txt
 input.txt
 polarInput.txt
