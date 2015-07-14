@@ -1,6 +1,7 @@
 module polar
 
 use utility
+use sensing
 
 contains
 
@@ -30,13 +31,13 @@ end subroutine getPolar2
 
 
 ! update the polarization vector with sensing V2
-subroutine getPolar3( p, plrR, eps, R0, Rk, comNew, comOld)
+subroutine getPolar3( p, plrR, q, R0, Rk, comNew, comOld)
     implicit none
-    real(b8), intent(in) :: plrR, eps, R0, Rk
-    real(b8), intent(inout), dimension(2) :: p
+    real(b8), intent(in) :: plrR, R0, Rk
+    real(b8), intent(inout), dimension(2) :: p, q
     real(b8), intent(in),    dimension(2) :: comNew, comOld
 
-    p = (1.0 - plrR) * p + (0.1 + eps * Rk/R0) * (COMnew - COMold)
+    p = (1.0 - plrR) * p + (COMnew - COMold) + (eps*Rk/R0) * q
 
 end subroutine getPolar3
 

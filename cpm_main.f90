@@ -21,20 +21,21 @@ integer, dimension(2) :: r0, rCell, rSim
 
 integer, allocatable :: sigma(:,:), sigmaTmp(:,:)
 integer, allocatable :: x(:,:,:), xTmp(:,:,:)
-integer, allocatable :: edge(:,:), filled(:,:), node(:)
+integer, allocatable :: edge(:,:), filled(:,:), node(:), nnL(:,:)
 integer, dimension(2) :: a, b, nn
 
-real(b8), allocatable :: dXtMCS(:), p(:,:), cellCOM(:,:), cellCOMold(:,:)
+real(b8), allocatable :: dXtMCS(:), p(:,:), q(:,:), cellCOM(:,:), cellCOMold(:,:), ptmp(:,:)
 real(b8) :: plrP, plrR
 
 real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
-real(b8) :: d, df, prob, r, uNew, uOld, w
+real(b8) :: d, df, prob, r, uNew, uOld, w, wSum, wCnt
 real(b8) :: neMean, neMeanRun
 real(b8) :: t0, tf
 
-real(b8) :: eps, rx1, rx2, speciesR0
-real(b8), allocatable :: signal(:), meanSignal(:), speciesR(:), speciesX(:), speciesY(:), meanY(:)
-real(b8), allocatable :: etaY(:), gNN(:,:), M(:,:)
+real(b8) :: rx1, rx2, speciesR0
+real(b8), allocatable  :: signal(:), meanSignal(:), speciesR(:), speciesX(:), speciesY(:), meanY(:)
+real(b8), allocatable  :: etaY(:), gNN(:,:), M(:,:)
+real(b8), dimension(2) :: qtmp
 
 call cpu_time(t0)
 
@@ -64,8 +65,12 @@ write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
-eps = 0.5
-speciesR0 = g * sqrt( N * A0**3.0 )
+! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
+speciesR0 = g * (rCell(1)-1) * sqrt( real(A0)**3.0)
+
+write(*,*) '  R0 =',speciesR0
+write(*,*) ' eps =',eps
+write(*,*)
 
 call init_random_seed()
 
@@ -84,6 +89,10 @@ allocate( MSDrun( tmax) )
 allocate( firstpass(runTotal) )
 
 allocate( p(N,2) )
+allocate( q(N,2) )
+
+allocate( ptmp(N,2) )
+
 allocate( cellCOM(N,2) )
 allocate( cellCOMold(N,2) )
 allocate( dXtMCS(N) )
@@ -96,6 +105,7 @@ allocate( speciesY(N) )
 allocate(  etaY(N) )
 allocate( gNN(N,N) )
 allocate(   M(N,N) )
+allocate( nnL(N,N) )
 
 MSDrun    = 0.0
 neMeanrun = 0.0
@@ -154,6 +164,7 @@ cellCOMold = cellCOM
 
 ! initialize polarization
 call itlPolar( N, plrP, p)
+p(:,:) = 0.0
 
 ! initializing signaling, sensing
 call getMeanSignal( meanSignal, N, x)
@@ -186,6 +197,8 @@ do i = 1, N
     write(155,*) cellCOM(i,:), tELEM - 1
 enddo
 
+wSum = 0.0
+wCnt = 0.0
 
 do while( tMCS < tmax )
     tELEM = tELEM + 1
@@ -230,8 +243,12 @@ do while( tMCS < tmax )
             aSig = sigma(a(1),a(2))
             bSig = sigma(b(1),b(2))
 
-            w = getBias( aSig, bSig, plrP, p, x, xtmp)
-            ! w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
+            ! w = getBias( aSig, bSig, plrP, p, x, xtmp)
+            w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
+
+            write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
+            wSum = wSum + w
+            wCnt = wCnt + 1.0
 
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
@@ -285,13 +302,38 @@ do while( tMCS < tmax )
         speciesR = speciesX - speciesY
 
         ! update polarization vector
+        ptmp = p
+
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
 
             ! call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
-            call getPolar2( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+            ! call getPolar2( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+
+            ! call getPolar3( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
             dXtMCS(i) = sqrt( dot_product( cellCOM(i,:)-cellCOMold(i,:), cellCOM(i,:)-cellCOMold(i,:) ) )
+
+            call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
+
+            ! write(*,*) '  N =',i, speciesR(i)/speciesR0, dXtMCS
+            ! write(166,*) sqrt(dot_product(p(i,:)-ptmp(i,:),p(i,:)-ptmp(i,:)))
         enddo
+
+        do i = 1, N
+            q(i,:) = 0.0
+            do j = 1, N
+                if( nnL(i,j) /= 0 )then
+                    qtmp = cellCOM(i,:) - cellCOM(j,:)
+                    qtmp = qtmp / sqrt( dot_product( qtmp, qtmp))
+                    q(i,:) = q(i,:) + real(nnL(i,j)) * qtmp
+                endif
+            enddo
+
+            call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+
+        enddo
+
+
         cellCOMold = cellCOM
 
         ! calculate COM of the whole group
@@ -301,8 +343,8 @@ do while( tMCS < tmax )
 
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
-        call wrtPolar( N, p, tMCS)
         ! write(150,*) xCOM(tMCS,:), tMCS
+        call wrtPolar( N, p, tMCS)
         ! call wrtX( N, x, tMCS)
         call wrtXR( N, x, speciesR, tMCS)
         do i = 1, N
@@ -332,9 +374,9 @@ do i = 1, tmax
     write(108,*) MSDrun(i), i-1
 enddo
 
-do i = 1, runTotal
-    write(109,*) firstpass(i), i
-enddo
+! do i = 1, runTotal
+!     write(109,*) firstpass(i), i
+! enddo
 
 neMeanRun = neMeanRun / real(runTotal)
 
@@ -345,6 +387,9 @@ write(*,*)
 write(*,*) 'Run time =',tf-t0
 write(*,*) 'Initial edge area =',ne0
 write(*,*) 'Average edge area =', neMeanRun
+write(*,*)
+write(*,*) ' mean w =',wSum/wCnt
+write(*,*)
 
 end program
 

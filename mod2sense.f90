@@ -6,6 +6,7 @@ module sensing
     real(b8), parameter :: g0 = 100.0
     real(b8), parameter :: gapFlow = 2.0
     real(b8), parameter :: kappa   = 1.0, mu = 1.0
+    real(b8), parameter :: eps = 1.0
 
 contains
 
@@ -238,7 +239,7 @@ end subroutine makeMtrxGamma
 subroutine getContactL( k, N, nnLk, rSim, sigma, xcell)
     implicit none
     integer, intent(in) :: N
-    integer, intent(out), dimension(:)   :: nnLk(:)
+    integer, intent(out), dimension(:)   :: nnLk
     integer, intent(in),  dimension(:,:) :: sigma
     integer, intent(in),  dimension(:,:) :: xcell
     integer, dimension(2) :: nn, rSim
