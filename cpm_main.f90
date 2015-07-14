@@ -246,12 +246,14 @@ do while( tMCS < tmax )
             ! w = getBias( aSig, bSig, plrP, p, x, xtmp)
             w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
 
-            write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
+            ! write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
             wSum = wSum + w
             wCnt = wCnt + 1.0
 
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
+
+            ! write(*,*) ' w =',w,' du =',uNew-uOld,' prob =',prob
 
             call random_number(r)
 
