@@ -312,7 +312,6 @@ do while( tMCS < tmax )
             ! call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
             ! call getPolar2( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
 
-            ! call getPolar3( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
             dXtMCS(i) = sqrt( dot_product( cellCOM(i,:)-cellCOMold(i,:), cellCOM(i,:)-cellCOMold(i,:) ) )
 
             call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
@@ -331,7 +330,8 @@ do while( tMCS < tmax )
                 endif
             enddo
 
-            call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+            ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+            call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
 
         enddo
 

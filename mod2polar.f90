@@ -30,7 +30,7 @@ subroutine getPolar2( p, plrR, eps, R0, Rk, comNew, comOld)
 end subroutine getPolar2
 
 
-! update the polarization vector with sensing V2
+! update the polarization vector with sensing and antagonist mech, cooperative mech
 subroutine getPolar3( p, plrR, q, R0, Rk, comNew, comOld)
     implicit none
     real(b8), intent(in) :: plrR, R0, Rk
@@ -40,6 +40,17 @@ subroutine getPolar3( p, plrR, q, R0, Rk, comNew, comOld)
     p = (1.0 - plrR) * p + (COMnew - COMold) + (eps*Rk/R0) * q
 
 end subroutine getPolar3
+
+
+! update the polarization vector with sensing and antagonist mech, cooperative mech
+subroutine getPolar4( p, plrR, q, R0, Rk)
+    implicit none
+    real(b8), intent(in) :: plrR, R0, Rk
+    real(b8), intent(inout), dimension(2) :: p, q
+
+    p = (1.0 - plrR) * p + (eps*Rk/R0) * q
+
+end subroutine getPolar4
 
 
 ! initialize the polarization vectors
