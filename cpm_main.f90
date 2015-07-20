@@ -28,7 +28,7 @@ real(b8), allocatable :: dXtMCS(:), p(:,:), q(:,:), cellCOM(:,:), cellCOMold(:,:
 real(b8) :: plrP, plrR
 
 real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
-real(b8) :: d, df, prob, r, uNew, uOld, w, wSum, wCnt
+real(b8) :: d, df, prob, r, uNew, uOld, w
 real(b8) :: neMean, neMeanRun
 real(b8) :: t0, tf
 
@@ -191,14 +191,12 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-! call wrtX( N, x, tELEM)
-call wrtXR( N, x, speciesR, tELEM)
+call wrtX( N, x, tELEM)
+! call wrtXR( N, x, speciesR, tELEM)
 do i = 1, N
     write(155,*) cellCOM(i,:), tELEM - 1
 enddo
 
-wSum = 0.0
-wCnt = 0.0
 
 do while( tMCS < tmax )
     tELEM = tELEM + 1
@@ -247,8 +245,6 @@ do while( tMCS < tmax )
             w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
 
             ! write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
-            wSum = wSum + w
-            wCnt = wCnt + 1.0
 
             uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
@@ -321,6 +317,7 @@ do while( tMCS < tmax )
         enddo
 
         do i = 1, N
+            ! calculate repulsion vector
             q(i,:) = 0.0
             do j = 1, N
                 if( nnL(i,j) /= 0 )then
@@ -329,6 +326,9 @@ do while( tMCS < tmax )
                     q(i,:) = q(i,:) + real(nnL(i,j)) * qtmp
                 endif
             enddo
+            if( dot_product( q(i,:), q(i,:)) /= 0.0 )then
+                q(i,:) = q(i,:) / sqrt( dot_product( q(i,:), q(i,:)))
+            endif
 
             ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
             call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
@@ -347,8 +347,8 @@ do while( tMCS < tmax )
         ! call wrtSigma( rSim, sigma, tMCS)
         ! write(150,*) xCOM(tMCS,:), tMCS
         call wrtPolar( N, p, tMCS)
-        ! call wrtX( N, x, tMCS)
-        call wrtXR( N, x, speciesR, tMCS)
+        call wrtX( N, x, tMCS)
+        ! call wrtXR( N, x, speciesR, tMCS)
         do i = 1, N
             write(155,*) cellCOM(i,:), tMCS - 1
         enddo
@@ -372,9 +372,9 @@ neMeanRun = neMeanRun + neMean
 enddo ! end run loop
 
 MSDrun = MSDrun / real(runTotal)
-do i = 1, tmax
-    write(108,*) MSDrun(i), i-1
-enddo
+! do i = 1, tmax
+    ! write(108,*) MSDrun(i), i-1
+! enddo
 
 ! do i = 1, runTotal
 !     write(109,*) firstpass(i), i
@@ -389,8 +389,6 @@ write(*,*)
 write(*,*) 'Run time =',tf-t0
 write(*,*) 'Initial edge area =',ne0
 write(*,*) 'Average edge area =', neMeanRun
-write(*,*)
-write(*,*) ' mean w =',wSum/wCnt
 write(*,*)
 
 end program

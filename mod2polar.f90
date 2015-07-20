@@ -42,7 +42,7 @@ subroutine getPolar3( p, plrR, q, R0, Rk, comNew, comOld)
 end subroutine getPolar3
 
 
-! update the polarization vector with sensing and antagonist mech, cooperative mech
+! update the polarization vector with sensing and antagonist mech
 subroutine getPolar4( p, plrR, q, R0, Rk)
     implicit none
     real(b8), intent(in) :: plrR, R0, Rk
