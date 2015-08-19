@@ -66,7 +66,7 @@ write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-speciesR0 = g * (rCell(1)-1) * sqrt( real(A0)**3.0)
+speciesR0 = g * rCell(1) * sqrt( real(A0)**3.0)
 
 write(*,*) '  R0 =',speciesR0
 write(*,*) ' eps =',eps
@@ -332,7 +332,6 @@ do while( tMCS < tmax )
 
             ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
             call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
-
         enddo
 
 
