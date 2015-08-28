@@ -1,6 +1,7 @@
 program test1
 
 use utility
+use goal
 use polar
 use sensing
 use wrtout
@@ -17,6 +18,8 @@ real(b8) :: rx1, rx2
 real(b8), allocatable :: cellCOM(:,:), speciesR(:), speciesX(:), speciesY(:)
 real(b8), allocatable :: etaY(:), gNN(:,:), M(:,:), meanSignal(:), signal(:), meanY(:)
 real(b8), dimension(2) :: xCOM
+
+real(b8) :: dA, dP, P0
 
 ! initialize parameters, variables
 open(unit=11,file='input.txt',status='old',action='read')
@@ -68,12 +71,22 @@ sigma    = 0
 rSim(1) = x1
 call itlSigma( r0, rCell, rSim, sigma)
 
-! call wrtSigma( rSim, sigma, 1)
+sigma(3,4) = 1
+sigma(2,4) = 1
+! sigma(5,4) = 0
+
+call wrtSigma( rSim, sigma, 1)
 
 ! initialize x array
 rSim(1) = x1
 call makeX( N, rSim, sigma, x)
 
+! calculate area and perimeters
+P0 = 3.545*sqrt( real(A0))
+do i = 1, N
+    call acCheck( dA, dP, A0, P0, rSim, sigma, x(i,:,:))
+    write(*,*) 'dA =', dA, 'dP =', dP
+enddo
 ! calculate contact lengths
 do i = 1, N
     call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
@@ -109,7 +122,7 @@ call getSpeciesY( etaY, M, N, signal, speciesY)
 ! enddo
 
 
-do i = 1, 1000
+do i = 1, 10
     call getSpeciesS( meanSignal, N, signal)
     call getSpeciesX( N, meanSignal, signal, speciesX)
     call getEtaY( etaY, gNN, meanSignal, meanY, N)

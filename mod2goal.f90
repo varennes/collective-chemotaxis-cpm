@@ -2,8 +2,8 @@ module goal
 
 use utility
 
-real(b8), parameter :: alpha = 1.0, beta = 2.0
-real(b8), parameter :: lambda = 1.5
+real(b8), parameter :: alpha = 1.0, beta = 1.5
+real(b8), parameter :: lambdaA = 1.5, lambdaP = 0.1
 
 contains
 
@@ -26,20 +26,21 @@ end function probEval
 
 
 ! evaluate energy of the configuration
-real(b8) function goalEval1( A0, N, rSim, sigma, x)
-    ! A0 = preferred area of one cell
+real(b8) function goalEval1( A0, P0, N, rSim, sigma, x)
+    ! A0/P0 = preferred area/perimeter of one cell
     ! L = number of lattice sites along one dimension
     ! N = total number of cells
     ! sigma = array of cell labels
     ! x = array of all the cells lattice sites
     implicit none
-    integer, intent(in) :: A0, N
-    integer, intent(in), dimension(2)     :: rSim
-    integer, intent(in), dimension(:,:)   :: sigma
-    integer, intent(in), dimension(:,:,:) :: x
+    real(b8), intent(in) :: P0
+    integer,  intent(in) :: A0, N
+    integer,  intent(in), dimension(2)     :: rSim
+    integer,  intent(in), dimension(:,:)   :: sigma
+    integer,  intent(in), dimension(:,:,:) :: x
     integer, dimension(2) :: ls1, ls2
     integer :: i, nx, ny
-    real(b8) :: dA, J, sum1, sum2
+    real(b8) :: dA, dP, J, sum1, sum2, sum3
 
     ! sum energy contribution due to J
     sum1 = 0.0
@@ -59,16 +60,20 @@ real(b8) function goalEval1( A0, N, rSim, sigma, x)
         enddo
     enddo
 
-    ! sum energy contribution due to area
+    ! sum energy contribution due to area and perimeter
     sum2 = 0.0
+    sum3 = 0.0
     do i = 1, N
-        dA = aCheck( A0, x(i,:,:))
+        call acCheck( dA, dP, A0, P0, rSim, sigma, x(i,:,:))
 
         sum2 = sum2 + dA**2.0
+        sum3 = sum3 + dP**2.0
     enddo
-    sum2 = lambda * sum2
+    sum2 = lambdaA * sum2
+    sum3 = lambdaP * sum3
 
-    goalEval1 = sum1 + sum2
+    ! write(*,*) sum1, sum2, sum3
+    goalEval1 = sum1 + sum2 + sum3
 
 end function goalEval1
 
@@ -123,6 +128,46 @@ real(b8) function aCheck( A0, xcell)
     aCheck = a - real(A0)
 
 end function aCheck
+
+
+! difference in area from preferred area of one cell
+! difference in perimeter from preferred perimeter of one cell
+subroutine acCheck( dA, dP, A0, P0, rSim, sigma, xcell)
+    ! A0, P0 = preferred area/perimeter of one cell
+    ! xcell = array of the lattice points occupied by one cell
+    implicit none
+    real(b8), intent(in) :: P0
+    integer,  intent(in) :: A0
+    integer,  intent(in), dimension(:,:) :: sigma
+    integer,  intent(in), dimension(:,:) :: xcell
+    real(b8), intent(out) :: dA, dP
+    integer, dimension(2) :: nn, rSim
+    integer :: i, inn, k, nl
+    real(b8) :: A, P
+
+    call occupyCount( nl, xcell )
+    A = real(nl)
+
+    dA = A - real(A0) ! difference in area
+
+    k = sigma( xcell(1,1), xcell(1,2)) ! cell label
+
+    P = 0.0
+    do i = 1, nl
+        do inn = 1, 4
+            call nnGet( inn, nn, rSim, xcell(i,1:2))
+            if( nn(1) == 0 )then
+                cycle
+            endif
+            if( sigma(nn(1),nn(2)) /= k )then
+                P = P + 1.0
+            endif
+        enddo
+    enddo
+
+    dP = P - P0 ! difference in periemeter
+
+end subroutine acCheck
 
 
 end module

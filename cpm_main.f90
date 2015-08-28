@@ -25,12 +25,12 @@ integer, allocatable :: edge(:,:), filled(:,:), node(:), nnL(:,:)
 integer, dimension(2) :: a, b, nn
 
 real(b8), allocatable :: dXtMCS(:), p(:,:), q(:,:), cellCOM(:,:), cellCOMold(:,:), ptmp(:,:)
-real(b8) :: plrP, plrR
+real(b8) :: plrP, plrR, P0
 
 real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
-real(b8) :: d, df, prob, r, uNew, uOld, w
+real(b8) :: d, df, dreset, prob, r, uNew, uOld, w
 real(b8) :: neMean, neMeanRun
-real(b8) :: t0, tf
+real(b8) :: t0, tf, treset
 
 real(b8) :: rx1, rx2, speciesR0
 real(b8), allocatable  :: signal(:), meanSignal(:), speciesR(:), speciesX(:), speciesY(:), meanY(:)
@@ -52,6 +52,7 @@ read(11,*) df
 rSim(1) = x1 + x2
 N       = rCell(1) * rCell(2)
 A0      = r0(1) * r0(2)
+P0      = 3.6*sqrt( real(A0))
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
@@ -59,7 +60,7 @@ read(12,*) plrP
 read(12,*) plrR
 
 write(*,*) '   N =',N
-write(*,*) '  A0 =',A0
+write(*,*) '  A0 =',A0, ' P0 =', P0
 write(*,*) 'rSim =',rSim
 write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
@@ -67,6 +68,7 @@ write(*,*)
 
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
 speciesR0 = g * rCell(1) * sqrt( real(A0)**3.0)
+dreset = 20.0
 
 write(*,*) '  R0 =',speciesR0
 write(*,*) ' eps =',eps
@@ -124,6 +126,7 @@ write(*,*) '  nRun =',nRun
 tcount = 1
 tELEM  = 1 ! elementary time step
 tMCS   = 1 ! MCS step, 1 MCS step = L^2 ELEM steps
+treset = 0.0
 
 edge   = 0
 node   = 0
@@ -182,20 +185,21 @@ speciesR = speciesX - speciesY
 
 ! calculate initial energy
 rSim(1) = x1 + x2
-uOld = goalEval1( A0, N, rSim, sigma, x)
+uOld = goalEval1( A0, P0, N, rSim, sigma, x)
 uNew = 0.0
+! write(*,*) ' uNew=', uNew, 'uOld=', uOld
 
 ! write outputs
 ! call wrtSigma( rSim, sigma, tELEM)
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 
 
 do while( tMCS < tmax )
@@ -246,10 +250,11 @@ do while( tMCS < tmax )
 
             ! write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
 
-            uNew = goalEval1( A0, N, rSim, sigmaTmp, xTmp)
+            uNew = goalEval1( A0, P0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
 
-            ! write(*,*) ' w =',w,' du =',uNew-uOld,' prob =',prob
+            ! write(*,*)
+            ! write(*,*) ' uNew=', uNew, 'uOld=', uOld, ' w=', w
 
             call random_number(r)
 
@@ -345,17 +350,20 @@ do while( tMCS < tmax )
         ! write outputs
         ! call wrtSigma( rSim, sigma, tMCS)
         ! write(150,*) xCOM(tMCS,:), tMCS
-        call wrtPolar( N, p, tMCS)
-        call wrtX( N, x, tMCS)
+        ! call wrtPolar( N, p, tMCS)
+        ! call wrtX( N, x, tMCS)
         ! call wrtXR( N, x, speciesR, tMCS)
-        do i = 1, N
-            write(155,*) cellCOM(i,:), tMCS - 1
-        enddo
+        ! do i = 1, N
+        !     write(155,*) cellCOM(i,:), tMCS - 1
+        ! enddo
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
+        if( d >= dreset .AND. d < (dreset + 2.0) )then
+        !     treset = tMCS - 1
+        ! endif
         if( d >= df )then
-            firstpass(nRun) = tMCS - 1
+            firstpass(nRun) = tMCS - 1 !- treset
             tMCS = tmax
         endif
 
@@ -375,11 +383,12 @@ MSDrun = MSDrun / real(runTotal)
     ! write(108,*) MSDrun(i), i-1
 ! enddo
 
-! do i = 1, runTotal
-!     write(109,*) firstpass(i), i
-! enddo
-
 neMeanRun = neMeanRun / real(runTotal)
+
+do i = 1, runTotal
+    write(109,*) firstpass(i) * real(ne0)/neMeanRun
+enddo
+
 
 close(11)
 
