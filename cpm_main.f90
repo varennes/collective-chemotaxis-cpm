@@ -360,8 +360,8 @@ do while( tMCS < tmax )
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
         if( d >= dreset .AND. d < (dreset + 2.0) )then
-        !     treset = tMCS - 1
-        ! endif
+            treset = tMCS - 1
+        endif
         if( d >= df )then
             firstpass(nRun) = tMCS - 1 !- treset
             tMCS = tmax
