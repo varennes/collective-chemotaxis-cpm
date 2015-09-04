@@ -147,7 +147,8 @@ b = 1
 
 ! initialize sigma
 rSim(1) = x1
-call itlSigma( r0, rCell, rSim, sigma)
+! call itlSigma( r0, rCell, rSim, sigma)
+call itlSigmaRandom( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
 call itlEdge( edge, ne, rSim, sigma)
@@ -194,12 +195,12 @@ uNew = 0.0
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
-! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-! call wrtX( N, x, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-! do i = 1, N
-!     write(155,*) cellCOM(i,:), tELEM - 1
-! enddo
+call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtX( N, x, tELEM)
+do i = 1, N
+    write(155,*) cellCOM(i,:), tELEM - 1
+enddo
 
 
 do while( tMCS < tmax )
@@ -348,14 +349,16 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        ! call wrtSigma( rSim, sigma, tMCS)
-        ! write(150,*) xCOM(tMCS,:), tMCS
-        ! call wrtPolar( N, p, tMCS)
-        ! call wrtX( N, x, tMCS)
-        ! call wrtXR( N, x, speciesR, tMCS)
-        ! do i = 1, N
-        !     write(155,*) cellCOM(i,:), tMCS - 1
-        ! enddo
+        if( mod( tMCS-1, 10) == 0)then
+            ! call wrtSigma( rSim, sigma, tMCS)
+            ! write(150,*) xCOM(tMCS,:), tMCS
+            ! call wrtXR( N, x, speciesR, tMCS)
+            call wrtPolar( N, p, tMCS)
+            call wrtX( N, x, tMCS)
+            do i = 1, N
+                write(155,*) cellCOM(i,:), tMCS - 1
+            enddo
+        endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
@@ -363,7 +366,7 @@ do while( tMCS < tmax )
             treset = tMCS - 1
         endif
         if( d >= df )then
-            firstpass(nRun) = tMCS - 1 !- treset
+            firstpass(nRun) = tMCS - 1 - treset
             tMCS = tmax
         endif
 
@@ -374,6 +377,9 @@ enddo ! end while loop
 MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
+
+write(108,*) firstpass(nRun) * real(ne0)/neMean
+
 neMeanRun = neMeanRun + neMean
 
 enddo ! end run loop

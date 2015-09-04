@@ -152,10 +152,6 @@ subroutine itlSigmaRandom( N, r0, rCell, rSim, sigma)
         enddo
     enddo
 
-    do i = 1, N
-        write(177,*) ocpyGrid(i,:)
-    enddo
-
     do k = 2, N
         i = cellGrid(1,1) - cellGrid(k,1) ! grid space distance from cell 1
         j = cellGrid(1,1) - cellGrid(k,2)
