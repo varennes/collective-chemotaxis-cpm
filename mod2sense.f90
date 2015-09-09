@@ -57,7 +57,13 @@ subroutine getSpeciesS( meanSignal, N, signal)
     signal = 0.0
     do i = 1, N
         ms = meanSignal(i)
-        signal(i) = normal(ms,sqrt(ms))
+
+        if( ms < 100.0 )then
+            call poissonrand( ms, signal(i))
+        else
+            signal(i) = normal(ms,sqrt(ms))
+        endif
+
         if( signal(i) < 0.0 )then
             signal(i) = 0.0
         endif
@@ -300,6 +306,30 @@ function normal(mean,sigma)
     normal=tmp*sigma+mean
     return
 end function normal
+
+
+! returns poisson distributed random number
+subroutine poissonrand( lambda, k)
+    ! lambda is the mean
+    ! k is the random number output
+    implicit none
+    real(b8), intent(in)  :: lambda
+    real(b8), intent(out) :: k
+    real(b8) :: l, p, u
+
+    l = exp(-1.0*lambda)
+    k = 0.0
+    p = 1.0
+
+    do while( p > l )
+        k = k + 1.0
+        call random_number(u)
+        p = p * u
+    enddo
+
+    k = k - 1.0
+
+end subroutine poissonrand
 
 
 subroutine gauss_1(a,b,x,n)

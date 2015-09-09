@@ -174,6 +174,87 @@ subroutine itlSigmaRandom( N, r0, rCell, rSim, sigma)
 end subroutine itlSigmaRandom
 
 
+subroutine itlSigmaSuper( N, r0, rCell, rSim, sigma)
+    ! r0 = initial dimnesions of individual cells
+    ! rCell = cluster dimensions in terms of number of cells
+    ! rSim = dimensions of cell initialization space
+    ! sigma = array of cell labels
+    implicit none
+    integer, intent(in) :: N
+    integer, intent(in),    dimension(2)   :: r0, rCell, rSim
+    integer, intent(inout), dimension(:,:) :: sigma
+    integer, allocatable :: cellGrid(:,:), ocpyGrid(:,:), edgeGrid(:,:)
+    integer, dimension(4,2) :: dr
+    integer, dimension(2) :: center, cell1, cellk
+    integer :: count, i, j, k
+    real(b8) :: r
+
+    allocate( cellGrid(N,2) )
+    allocate( edgeGrid(4*N,2) )
+    allocate( ocpyGrid(N+1,N+1) )
+
+    sigma    = 0
+    cellGrid = 0
+    edgeGrid = 0
+    ocpyGrid = 0
+    ocpyGrid(N/2+1,N/2+1) = 1
+    cellGrid(1,:) = [ N/2+1, N/2+1]
+
+    dr(1,:) = [ 1, 0]
+    dr(2,:) = [ 0, 1]
+    dr(3,:) = [-1, 0]
+    dr(4,:) = [ 0,-1]
+
+    center(1) = rSim(1)/2 + 2
+    center(2) = rSim(2)/2 + 2
+    cell1(1)  = center(1) - r0(1)/2
+    cell1(2)  = center(2) - r0(2)/2
+
+    sigma( cell1(1):cell1(1)+r0(1)-1, cell1(2):cell1(2)+r0(2)-1) = 1
+
+    do i = 1, N-1
+        count = 0
+        edgeGrid = 0
+        ! count all the availible edges
+        do j = 1, i
+            do k = 1, 4
+                if( ocpyGrid( cellGrid(j,1)+dr(k,1), cellGrid(j,2)+dr(k,2)) == 0 )then
+                    count = count + 1
+                    edgeGrid(count,1) = cellGrid(j,1)+dr(k,1)
+                    edgeGrid(count,2) = cellGrid(j,2)+dr(k,2)
+                endif
+            enddo
+        enddo
+        ! pick a random edge
+        call random_number(r)
+        j = 1 + floor(r*real(count))
+        cellGrid(i+1,1) = edgeGrid(j,1)
+        cellGrid(i+1,2) = edgeGrid(j,2)
+        ocpyGrid( cellGrid(i+1,1), cellGrid(i+1,2)) = i+1
+    enddo
+
+    do k = 2, N
+        i = cellGrid(1,1) - cellGrid(k,1) ! grid space distance from cell 1
+        j = cellGrid(1,1) - cellGrid(k,2)
+
+        cellk(1) = cell1(1) + i*r0(1)
+        cellk(2) = cell1(2) + j*r0(2)
+
+        if( cellk(1) < 2 .OR. (cellk(1)+r0(1)-1) > rSim(1)+1 )then
+            write(*,*) 'Cells out of bounds! You done goofed!'
+            exit
+        endif
+        if( cellk(2) < 2 .OR. (cellk(2)+r0(1)-1) > rSim(2)+1 )then
+            write(*,*) 'Cells out of bounds! You done goofed!'
+            exit
+        endif
+
+        sigma( cellk(1):cellk(1)+r0(1)-1, cellk(2):cellk(2)+r0(2)-1) = k
+    enddo
+
+end subroutine itlSigmaSuper
+
+
 subroutine itlEdge( edge, ne, rSim, sigma)
     ! edge = array of lattice sites with diff. sigma neighbors
     implicit none

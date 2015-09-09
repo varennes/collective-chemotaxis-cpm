@@ -148,7 +148,8 @@ b = 1
 ! initialize sigma
 rSim(1) = x1
 ! call itlSigma( r0, rCell, rSim, sigma)
-call itlSigmaRandom( N, r0, rCell, rSim, sigma)
+! call itlSigmaRandom( N, r0, rCell, rSim, sigma)
+call itlSigmaSuper( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
 call itlEdge( edge, ne, rSim, sigma)
@@ -191,7 +192,7 @@ uNew = 0.0
 ! write(*,*) ' uNew=', uNew, 'uOld=', uOld
 
 ! write outputs
-! call wrtSigma( rSim, sigma, tELEM)
+call wrtSigma( rSim, sigma, tELEM)
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
@@ -305,6 +306,8 @@ do while( tMCS < tmax )
         call getSpeciesY( etaY, M, N, signal, speciesY)
         speciesR = speciesX - speciesY
 
+        write(*,*) 'tMC',tMCS, ' dR =', abs( speciesR(i) - speciesR(N) )
+
         ! update polarization vector
         ptmp = p
 
@@ -362,8 +365,10 @@ do while( tMCS < tmax )
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
-        if( d >= dreset .AND. d < (dreset + 2.0) )then
-            treset = tMCS - 1
+        if( treset == 0.0 )then
+            if( d >= dreset .AND. d < (dreset + 2.0) )then
+                treset = tMCS - 1
+            endif
         endif
         if( d >= df )then
             firstpass(nRun) = tMCS - 1 - treset
