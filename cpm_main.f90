@@ -12,7 +12,7 @@ use wrtout
 
 ! allocate variables
 implicit none
-integer :: i, j, ne, ne0, nf, nl, check, aSig, bSig
+integer :: i, j, k, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
@@ -24,7 +24,7 @@ integer, allocatable :: x(:,:,:), xTmp(:,:,:)
 integer, allocatable :: edge(:,:), filled(:,:), node(:), nnL(:,:)
 integer, dimension(2) :: a, b, nn
 
-real(b8), allocatable :: dXtMCS(:), p(:,:), q(:,:), cellCOM(:,:), cellCOMold(:,:), ptmp(:,:)
+real(b8), allocatable :: dXtMCS(:), p(:,:), q(:,:), cellCOM(:,:), cellCOMold(:,:), ptmp(:,:), deltaCOM(:)
 real(b8) :: plrP, plrR, P0
 
 real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
@@ -68,6 +68,9 @@ write(*,*)
 
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
 speciesR0 = g * rCell(1) * sqrt( real(A0)**3.0)
+if( g == 0 )then
+    speciesR0 = eps
+endif
 dreset = 20.0
 
 write(*,*) '  R0 =',speciesR0
@@ -98,6 +101,7 @@ allocate( ptmp(N,2) )
 allocate( cellCOM(N,2) )
 allocate( cellCOMold(N,2) )
 allocate( dXtMCS(N) )
+allocate( deltaCOM(N*(N-1)/2) )
 allocate( signal(N) )
 allocate( meanSignal(N) )
 allocate( speciesR(N) )
@@ -192,16 +196,16 @@ uNew = 0.0
 ! write(*,*) ' uNew=', uNew, 'uOld=', uOld
 
 ! write outputs
-call wrtSigma( rSim, sigma, tELEM)
+! call wrtSigma( rSim, sigma, tELEM)
 ! call wrtEdge( edge, rSim, sigma, tELEM)
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
 call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
+! call wrtX( N, x, tELEM)
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 
 
 do while( tMCS < tmax )
@@ -306,16 +310,19 @@ do while( tMCS < tmax )
         call getSpeciesY( etaY, M, N, signal, speciesY)
         speciesR = speciesX - speciesY
 
-        write(*,*) 'tMC',tMCS, ' dR =', abs( speciesR(i) - speciesR(N) )
-
         ! update polarization vector
         ptmp = p
 
+        k = 0
+        deltaCOM = 0.0
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
 
-            ! call getPolar( p(i,:), plrR, cellCOM(i,:), cellCOMold(i,:))
-            ! call getPolar2( p(i,:), plrR, eps, speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
+            ! calculate intercell distances
+            do j = i+1, N
+                k = k + 1
+                deltaCOM(k) = sqrt( dot_product( cellCOM(i,:)-cellCOM(j,:), cellCOM(i,:)-cellCOM(j,:) ) )
+            enddo
 
             dXtMCS(i) = sqrt( dot_product( cellCOM(i,:)-cellCOMold(i,:), cellCOM(i,:)-cellCOMold(i,:) ) )
 
@@ -352,16 +359,23 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
+        ! if( mod( tMCS-1, 10) == 0)then
+
+            write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
+            do i = 1, N*(N-1)/2
+                write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
+            enddo
+            write(130+nRun,*) ''
+
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
             call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
-        endif
+            ! call wrtX( N, x, tMCS)
+            ! do i = 1, N
+            !     write(155,*) cellCOM(i,:), tMCS - 1
+            ! enddo
+        ! endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
@@ -387,6 +401,8 @@ write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
+write(*,*) '  FPT: treset =', treset
+
 enddo ! end run loop
 
 MSDrun = MSDrun / real(runTotal)
@@ -408,6 +424,7 @@ write(*,*)
 write(*,*) 'Run time =',tf-t0
 write(*,*) 'Initial edge area =',ne0
 write(*,*) 'Average edge area =', neMeanRun
+write(*,*) 'FPT: treset =', treset
 write(*,*)
 
 end program
