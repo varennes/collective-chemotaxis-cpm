@@ -367,6 +367,17 @@ do while( tMCS < tmax )
             enddo
             write(130+nRun,*) ''
 
+            write(161,'(I7)', advance='no') tMCS-1 ! write species X
+            do i = 1, N
+                write(161,'(F9.2)', advance='no') speciesX(i)
+            enddo
+            write(161,*) ''
+            write(162,'(I7)', advance='no') tMCS-1 ! write species Y
+            do i = 1, N
+                write(162,'(F9.2)', advance='no') speciesY(i)
+            enddo
+            write(162,*) ''
+
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
