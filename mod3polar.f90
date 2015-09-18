@@ -48,7 +48,7 @@ subroutine getPolar4( p, plrR, q, R0, Rk)
     real(b8), intent(in) :: plrR, R0, Rk
     real(b8), intent(inout), dimension(2) :: p, q
 
-    p = (1.0 - plrR) * p + (eps*Rk/R0) * q
+    p = (1.0 - plrR) * p + (plrR*eps*Rk/R0) * q ! eps is now dimensionless
 
 end subroutine getPolar4
 

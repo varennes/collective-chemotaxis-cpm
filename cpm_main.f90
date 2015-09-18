@@ -66,10 +66,10 @@ write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
-! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-speciesR0 = g * rCell(1) * sqrt( real(A0)**3.0)
+speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
+! speciesR0 = g * rCell(1) * sqrt( real(A0)**3.0)
 if( g == 0 )then
-    speciesR0 = eps
+    speciesR0 = 1.0
 endif
 dreset = 20.0
 
