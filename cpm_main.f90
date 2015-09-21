@@ -66,16 +66,8 @@ write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
-speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-! speciesR0 = g * rCell(1) * sqrt( real(A0)**3.0)
-if( g == 0 )then
-    speciesR0 = 1.0
-endif
+! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
 dreset = 20.0
-
-write(*,*) '  R0 =',speciesR0
-write(*,*) ' eps =',eps
-write(*,*)
 
 call init_random_seed()
 
@@ -151,9 +143,9 @@ b = 1
 
 ! initialize sigma
 rSim(1) = x1
-! call itlSigma( r0, rCell, rSim, sigma)
+call itlSigma( r0, rCell, rSim, sigma)
 ! call itlSigmaRandom( N, r0, rCell, rSim, sigma)
-call itlSigmaSuper( N, r0, rCell, rSim, sigma)
+! call itlSigmaSuper( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
 call itlEdge( edge, ne, rSim, sigma)
@@ -188,6 +180,11 @@ call getMeanY( meanSignal, M, meanY, N)
 call getEtaY( etaY, gNN, meanSignal, meanY, N)
 call getSpeciesY( etaY, M, N, signal, speciesY)
 speciesR = speciesX - speciesY
+speciesR0 = sqrt( sum(meanSignal) / real(N)) ! standard deviation in R
+
+write(*,*) '  R0 =',speciesR0
+write(*,*) ' eps =',eps
+write(*,*)
 
 ! calculate initial energy
 rSim(1) = x1 + x2
