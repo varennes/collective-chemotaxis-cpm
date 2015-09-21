@@ -1,8 +1,5 @@
 program cpmcollab
 
-! boundary condition:  If pickb chooses a lattice point outside of the space
-!                      pick again without advancing the clock.
-
 use utility
 use goal
 use polar
@@ -53,6 +50,8 @@ rSim(1) = x1 + x2
 N       = rCell(1) * rCell(2)
 A0      = r0(1) * r0(2)
 P0      = 3.6*sqrt( real(A0))
+! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
+dreset = 20.0
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
@@ -65,9 +64,6 @@ write(*,*) 'rSim =',rSim
 write(*,*) '  df =',df
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
-
-! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-dreset = 20.0
 
 call init_random_seed()
 
@@ -198,11 +194,11 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 
 
 do while( tMCS < tmax )
@@ -356,34 +352,34 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        ! if( mod( tMCS-1, 10) == 0)then
+        if( mod( tMCS-1, 10) == 0)then
 
-            ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
-            ! do i = 1, N*(N-1)/2
-            !     write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
+            write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
+            do i = 1, N*(N-1)/2
+                write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
+            enddo
+            write(130+nRun,*) ''
+
+            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
+            ! do i = 1, N
+            !     write(161,'(F9.2)', advance='no') speciesX(i)
             ! enddo
-            ! write(130+nRun,*) ''
-
-            write(161,'(I7)', advance='no') tMCS-1 ! write species X
-            do i = 1, N
-                write(161,'(F9.2)', advance='no') speciesX(i)
-            enddo
-            write(161,*) ''
-            write(162,'(I7)', advance='no') tMCS-1 ! write species Y
-            do i = 1, N
-                write(162,'(F9.2)', advance='no') speciesY(i)
-            enddo
-            write(162,*) ''
+            ! write(161,*) ''
+            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
+            ! do i = 1, N
+            !     write(162,'(F9.2)', advance='no') speciesY(i)
+            ! enddo
+            ! write(162,*) ''
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
-        ! endif
+            ! call wrtPolar( N, p, tMCS)
+            ! call wrtX( N, x, tMCS)
+            ! do i = 1, N
+            !     write(155,*) cellCOM(i,:), tMCS - 1
+            ! enddo
+        endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
@@ -415,7 +411,7 @@ enddo ! end run loop
 
 MSDrun = MSDrun / real(runTotal)
 ! do i = 1, tmax
-    ! write(108,*) MSDrun(i), i-1
+!     write(107,*) MSDrun(i), i-1
 ! enddo
 
 neMeanRun = neMeanRun / real(runTotal)
