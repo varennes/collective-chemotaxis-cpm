@@ -199,10 +199,10 @@ uNew = 0.0
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
 call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-! call wrtX( N, x, tELEM)
-! do i = 1, N
-!     write(155,*) cellCOM(i,:), tELEM - 1
-! enddo
+call wrtX( N, x, tELEM)
+do i = 1, N
+    write(155,*) cellCOM(i,:), tELEM - 1
+enddo
 
 
 do while( tMCS < tmax )
@@ -358,11 +358,11 @@ do while( tMCS < tmax )
         ! write outputs
         ! if( mod( tMCS-1, 10) == 0)then
 
-            write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
-            do i = 1, N*(N-1)/2
-                write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
-            enddo
-            write(130+nRun,*) ''
+            ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
+            ! do i = 1, N*(N-1)/2
+            !     write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
+            ! enddo
+            ! write(130+nRun,*) ''
 
             write(161,'(I7)', advance='no') tMCS-1 ! write species X
             do i = 1, N
@@ -379,10 +379,10 @@ do while( tMCS < tmax )
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
             call wrtPolar( N, p, tMCS)
-            ! call wrtX( N, x, tMCS)
-            ! do i = 1, N
-            !     write(155,*) cellCOM(i,:), tMCS - 1
-            ! enddo
+            call wrtX( N, x, tMCS)
+            do i = 1, N
+                write(155,*) cellCOM(i,:), tMCS - 1
+            enddo
         ! endif
 
         ! calculate d
@@ -405,7 +405,7 @@ MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
 
-write(108,*) firstpass(nRun) * real(ne0)/neMean
+! write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
@@ -420,9 +420,9 @@ MSDrun = MSDrun / real(runTotal)
 
 neMeanRun = neMeanRun / real(runTotal)
 
-do i = 1, runTotal
-    write(109,*) firstpass(i) * real(ne0)/neMeanRun
-enddo
+! do i = 1, runTotal
+!     write(109,*) firstpass(i) * real(ne0)/neMeanRun
+! enddo
 
 
 close(11)
