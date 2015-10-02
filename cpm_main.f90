@@ -352,13 +352,13 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
+        ! if( mod( tMCS-1, 10) == 0)then
 
-            write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
-            do i = 1, N*(N-1)/2
-                write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
-            enddo
-            write(130+nRun,*) ''
+            ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
+            ! do i = 1, N*(N-1)/2
+            !     write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
+            ! enddo
+            ! write(130+nRun,*) ''
 
             ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
             ! do i = 1, N
@@ -379,7 +379,7 @@ do while( tMCS < tmax )
             ! do i = 1, N
             !     write(155,*) cellCOM(i,:), tMCS - 1
             ! enddo
-        endif
+        ! endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
@@ -401,7 +401,7 @@ MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
 
-! write(108,*) firstpass(nRun) * real(ne0)/neMean
+write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
@@ -416,9 +416,9 @@ MSDrun = MSDrun / real(runTotal)
 
 neMeanRun = neMeanRun / real(runTotal)
 
-! do i = 1, runTotal
-!     write(109,*) firstpass(i) * real(ne0)/neMeanRun
-! enddo
+do i = 1, runTotal
+    write(109,*) firstpass(i) * real(ne0)/neMeanRun
+enddo
 
 
 close(11)
