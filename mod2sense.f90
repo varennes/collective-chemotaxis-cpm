@@ -2,7 +2,7 @@ module sensing
 
     use utility
 
-    real(b8), parameter :: g  = 0.01
+    real(b8), parameter :: g  = 0.10
     real(b8), parameter :: g0 = 20.0
     real(b8), parameter :: gapFlow = 2.0
     real(b8), parameter :: kappa   = 1.0, mu = 1.0

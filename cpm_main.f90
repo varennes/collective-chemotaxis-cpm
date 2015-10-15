@@ -194,11 +194,11 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-! call wrtX( N, x, tELEM)
-! do i = 1, N
-!     write(155,*) cellCOM(i,:), tELEM - 1
-! enddo
+call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtX( N, x, tELEM)
+do i = 1, N
+    write(155,*) cellCOM(i,:), tELEM - 1
+enddo
 
 
 do while( tMCS < tmax )
@@ -352,7 +352,7 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        ! if( mod( tMCS-1, 10) == 0)then
+        if( mod( tMCS-1, 10) == 0)then
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
@@ -374,12 +374,12 @@ do while( tMCS < tmax )
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            ! call wrtPolar( N, p, tMCS)
-            ! call wrtX( N, x, tMCS)
-            ! do i = 1, N
-            !     write(155,*) cellCOM(i,:), tMCS - 1
-            ! enddo
-        ! endif
+            call wrtPolar( N, p, tMCS)
+            call wrtX( N, x, tMCS)
+            do i = 1, N
+                write(155,*) cellCOM(i,:), tMCS - 1
+            enddo
+        endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
