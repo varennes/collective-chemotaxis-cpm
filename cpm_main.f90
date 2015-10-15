@@ -1,4 +1,6 @@
 program cpmcollab
+! in this version of simulation, the polarization vector is independent of sensing
+! the polarization vector is updated irrespective of sensing and repulsion
 
 use utility
 use goal
@@ -28,6 +30,7 @@ real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
 real(b8) :: d, df, dreset, prob, r, uNew, uOld, w
 real(b8) :: neMean, neMeanRun
 real(b8) :: t0, tf, treset
+real(b8) :: mean, stddev
 
 real(b8) :: rx1, rx2, speciesR0
 real(b8), allocatable  :: signal(:), meanSignal(:), speciesR(:), speciesX(:), speciesY(:), meanY(:)
@@ -194,11 +197,11 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 
 
 do while( tMCS < tmax )
@@ -290,19 +293,6 @@ do while( tMCS < tmax )
 
         neMean = neMean + real(ne)
 
-        ! updated signalling, sensing
-        call getMeanSignal( meanSignal, N, x)
-        call getSpeciesS( meanSignal, N, signal)
-        call getSpeciesX( N, meanSignal, signal, speciesX)
-
-        call makeMtrxGamma( gNN, N, rSim, sigma, x)
-        call makeMtrxM( gNN, M, N)
-
-        call getMeanY( meanSignal, M, meanY, N)
-        call getEtaY( etaY, gNN, meanSignal, meanY, N)
-        call getSpeciesY( etaY, M, N, signal, speciesY)
-        speciesR = speciesX - speciesY
-
         ! update polarization vector
         ptmp = p
 
@@ -328,21 +318,17 @@ do while( tMCS < tmax )
         do i = 1, N
             ! calculate repulsion vector
             q(i,:) = 0.0
-            do j = 1, N
-                if( nnL(i,j) /= 0 )then
-                    qtmp = cellCOM(i,:) - cellCOM(j,:)
-                    qtmp = qtmp / sqrt( dot_product( qtmp, qtmp))
-                    q(i,:) = q(i,:) + real(nnL(i,j)) * qtmp
-                endif
-            enddo
-            if( dot_product( q(i,:), q(i,:)) /= 0.0 )then
-                q(i,:) = q(i,:) / sqrt( dot_product( q(i,:), q(i,:)))
-            endif
+            mean   = 0.0
+            stddev = 1.5707963267949
 
-            ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
-            call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
+            r = normal( mean, stddev)
+
+            q(i,1) = cos(r)
+            q(i,2) = sin(r)
+
+            ! update polarization vector
+            p = (1.0 - plrR) * p + eps * q
         enddo
-
 
         cellCOMold = cellCOM
 
@@ -352,7 +338,7 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
+        ! if( mod( tMCS-1, 1) == 0)then
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
@@ -374,12 +360,14 @@ do while( tMCS < tmax )
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
-        endif
+        !     call wrtPolar( N, p, tMCS)
+        !     call wrtX( N, x, tMCS)
+        !     do i = 1, N
+        !         write(155,*) cellCOM(i,:), tMCS - 1
+        !         write(166,*) q(i,1), q(i,2), tMCS - 1 ! write out repulsion vector
+        !         write(167,*) r, tMCS - 1              ! write out repulsion vector angle
+        !     enddo
+        ! endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
