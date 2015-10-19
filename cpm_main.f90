@@ -176,7 +176,7 @@ call getMeanY( meanSignal, M, meanY, N)
 call getEtaY( etaY, gNN, meanSignal, meanY, N)
 call getSpeciesY( etaY, M, N, signal, speciesY)
 speciesR = speciesX - speciesY
-speciesR0 = sqrt( sum(meanSignal) / real(N)) ! standard deviation in R
+speciesR0 = sqrt( sum(meanSignal) / real(N) * kappa / mu) ! standard deviation in R
 
 write(*,*) '  R0 =',speciesR0
 write(*,*) ' eps =',eps
@@ -194,12 +194,11 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
-
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 
 do while( tMCS < tmax )
     tELEM = tELEM + 1
@@ -360,25 +359,25 @@ do while( tMCS < tmax )
             ! enddo
             ! write(130+nRun,*) ''
 
-            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
-            ! do i = 1, N
-            !     write(161,'(F9.2)', advance='no') speciesX(i)
-            ! enddo
-            ! write(161,*) ''
-            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
-            ! do i = 1, N
-            !     write(162,'(F9.2)', advance='no') speciesY(i)
-            ! enddo
-            ! write(162,*) ''
+            write(161,'(I7)', advance='no') tMCS-1 ! write species X
+            do i = 1, N
+                write(161,'(F9.2)', advance='no') speciesX(i)
+            enddo
+            write(161,*) ''
+            write(162,'(I7)', advance='no') tMCS-1 ! write species Y
+            do i = 1, N
+                write(162,'(F9.2)', advance='no') speciesY(i)
+            enddo
+            write(162,*) ''
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
+            ! call wrtPolar( N, p, tMCS)
+            ! call wrtX( N, x, tMCS)
+            ! do i = 1, N
+            !     write(155,*) cellCOM(i,:), tMCS - 1
+            ! enddo
         endif
 
         ! calculate d
