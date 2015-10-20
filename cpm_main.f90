@@ -319,7 +319,7 @@ do while( tMCS < tmax )
             ! calculate repulsion vector
             q(i,:) = 0.0
             mean   = 0.0
-            stddev = 1.5707963267949
+            stddev = 1.0471975511966
 
             r = normal( mean, stddev)
 
