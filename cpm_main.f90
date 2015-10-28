@@ -351,7 +351,7 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
+        if( mod( tMCS-1, 1) == 0)then
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
@@ -359,16 +359,19 @@ do while( tMCS < tmax )
             ! enddo
             ! write(130+nRun,*) ''
 
-            write(161,'(I7)', advance='no') tMCS-1 ! write species X
-            do i = 1, N
-                write(161,'(F9.2)', advance='no') speciesX(i)
-            enddo
-            write(161,*) ''
-            write(162,'(I7)', advance='no') tMCS-1 ! write species Y
-            do i = 1, N
-                write(162,'(F9.2)', advance='no') speciesY(i)
-            enddo
-            write(162,*) ''
+            i = maxloc( cellCOM(:,1), 1) ! find location of leading-edge cell
+            write(161,*) speciesX(i), speciesY(i), tMCS-1
+
+            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
+            ! do i = 1, N
+            !     write(161,'(F9.2)', advance='no') speciesX(i)
+            ! enddo
+            ! write(161,*) ''
+            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
+            ! do i = 1, N
+            !     write(162,'(F9.2)', advance='no') speciesY(i)
+            ! enddo
+            ! write(162,*) ''
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
@@ -400,7 +403,7 @@ MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
 
-write(108,*) firstpass(nRun) * real(ne0)/neMean
+! write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
@@ -415,9 +418,9 @@ MSDrun = MSDrun / real(runTotal)
 
 neMeanRun = neMeanRun / real(runTotal)
 
-do i = 1, runTotal
-    write(109,*) firstpass(i) * real(ne0)/neMeanRun
-enddo
+! do i = 1, runTotal
+!     write(109,*) firstpass(i) * real(ne0)/neMeanRun
+! enddo
 
 
 close(11)
