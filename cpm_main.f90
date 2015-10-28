@@ -142,8 +142,8 @@ b = 1
 
 ! initialize sigma
 rSim(1) = x1
-call itlSigma( r0, rCell, rSim, sigma)
-! call itlSigmaRandom( N, r0, rCell, rSim, sigma)
+! call itlSigma( r0, rCell, rSim, sigma)
+call itlSigmaRandom( N, r0, rCell, rSim, sigma)
 ! call itlSigmaSuper( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
@@ -364,8 +364,8 @@ do while( tMCS < tmax )
             call wrtX( N, x, tMCS)
             do i = 1, N
                 write(155,*) cellCOM(i,:), tMCS - 1
-                write(166,*) q(i,1), q(i,2), tMCS - 1 ! write out repulsion vector
-                write(167,*) r, tMCS - 1              ! write out repulsion vector angle
+                ! write(166,*) q(i,1), q(i,2), tMCS - 1 ! write out repulsion vector
+                ! write(167,*) r, tMCS - 1              ! write out repulsion vector angle
             enddo
         endif
 
@@ -389,7 +389,7 @@ MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
 
-write(108,*) firstpass(nRun) * real(ne0)/neMean
+! write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
@@ -404,9 +404,9 @@ MSDrun = MSDrun / real(runTotal)
 
 neMeanRun = neMeanRun / real(runTotal)
 
-do i = 1, runTotal
-    write(109,*) firstpass(i) * real(ne0)/neMeanRun
-enddo
+! do i = 1, runTotal
+!     write(109,*) firstpass(i) * real(ne0)/neMeanRun
+! enddo
 
 
 close(11)
