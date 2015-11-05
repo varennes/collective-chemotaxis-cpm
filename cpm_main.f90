@@ -386,8 +386,8 @@ do while( tMCS < tmax )
                 endif
             endif
             j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
-            ! write(161,*) speciesX(i), speciesY(i), tMCS-1
-            ! write(162,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1
+            write(161,*) speciesX(i), speciesY(i), tMCS-1
+            write(162,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
