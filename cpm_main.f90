@@ -360,18 +360,34 @@ do while( tMCS < tmax )
             ! write(130+nRun,*) ''
 
             i = maxloc( cellCOM(:,1), 1) ! find location of leading-edge cell
-            write(161,*) speciesX(i), speciesY(i), tMCS-1
-
-            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
-            ! do i = 1, N
-            !     write(161,'(F9.2)', advance='no') speciesX(i)
-            ! enddo
-            ! write(161,*) ''
-            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
-            ! do i = 1, N
-            !     write(162,'(F9.2)', advance='no') speciesY(i)
-            ! enddo
-            ! write(162,*) ''
+            ! check that leading-edge is connected to cluster
+            if( N /= 1 )then
+                call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
+                k = 0
+                do j = 1, N
+                    k = nnL(i,j) + k
+                enddo
+                if( k == 0)then
+                    ! write(*,*) 'no contact!, i=',i, tMCS-1
+                    if( i == 1 )then
+                        i = minloc( cellCOM(:,1), 1)
+                    else
+                        i = maxloc( cellCOM(1:i-1,1), 1)
+                    endif
+                    if( i == N )then
+                        j = minloc( cellCOM(:,1), 1)
+                    else
+                        j = maxloc( cellCOM(i+1:N,1), 1)
+                    endif
+                    if( cellCOM(i,1) < cellCOM(j,1) )then
+                        i = j
+                    endif
+                    ! write(*,*) 'now          i=',i, tMCS-1
+                endif
+            endif
+            j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
+            ! write(161,*) speciesX(i), speciesY(i), tMCS-1
+            ! write(162,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
