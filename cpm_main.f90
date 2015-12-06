@@ -9,7 +9,7 @@ use wrtout
 
 ! allocate variables
 implicit none
-integer :: i, j, k, ne, ne0, nf, nl, check, aSig, bSig
+integer :: i, j, k, l, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
@@ -367,8 +367,7 @@ do while( tMCS < tmax )
                 do j = 1, N
                     k = nnL(i,j) + k
                 enddo
-                if( k == 0)then
-                    ! write(*,*) 'no contact!, i=',i, tMCS-1
+                do while( k == 0)
                     if( i == 1 )then
                         i = minloc( cellCOM(:,1), 1)
                     else
@@ -382,12 +381,23 @@ do while( tMCS < tmax )
                     if( cellCOM(i,1) < cellCOM(j,1) )then
                         i = j
                     endif
-                    ! write(*,*) 'now          i=',i, tMCS-1
-                endif
+                    ! check that cell is connected to cluster
+                    call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
+                    k = 0
+                    do j = 1, N
+                        k = nnL(i,j) + k
+                    enddo
+                enddo
             endif
             j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
+            ! calculate average cell size
+            l = 0
+            do k = 1, N
+                call occupyCount( nl, x(i,:,:))
+                l = nl + l
+            enddo
             write(161,*) speciesX(i), speciesY(i), tMCS-1
-            write(162,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1
+            write(162,*) cellCOM(i,1)-cellCOM(j,1), sqrt( real(l)/real(N)), tMCS-1
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
