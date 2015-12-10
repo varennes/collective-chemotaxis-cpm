@@ -9,7 +9,7 @@ use wrtout
 
 ! allocate variables
 implicit none
-integer :: i, j, k, l, ne, ne0, nf, nl, check, aSig, bSig
+integer :: i, j, k, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
@@ -176,7 +176,7 @@ call getMeanY( meanSignal, M, meanY, N)
 call getEtaY( etaY, gNN, meanSignal, meanY, N)
 call getSpeciesY( etaY, M, N, signal, speciesY)
 speciesR = speciesX - speciesY
-speciesR0 = sqrt( sum(meanSignal) / real(N) * kappa / mu) ! standard deviation in R
+speciesR0 = sqrt( sum(meanSignal) / real(N)) ! standard deviation in R
 
 write(*,*) '  R0 =',speciesR0
 write(*,*) ' eps =',eps
@@ -194,11 +194,12 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-! call wrtX( N, x, tELEM)
-! do i = 1, N
-!     write(155,*) cellCOM(i,:), tELEM - 1
-! enddo
+call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtX( N, x, tELEM)
+do i = 1, N
+    write(155,*) cellCOM(i,:), tELEM - 1
+enddo
+
 
 do while( tMCS < tmax )
     tELEM = tELEM + 1
@@ -351,7 +352,7 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 1) == 0)then
+        if( mod( tMCS-1, 10) == 0)then
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
@@ -367,7 +368,8 @@ do while( tMCS < tmax )
                 do j = 1, N
                     k = nnL(i,j) + k
                 enddo
-                do while( k == 0)
+                if( k == 0)then
+                    ! write(*,*) 'no contact!, i=',i, tMCS-1
                     if( i == 1 )then
                         i = minloc( cellCOM(:,1), 1)
                     else
@@ -381,32 +383,32 @@ do while( tMCS < tmax )
                     if( cellCOM(i,1) < cellCOM(j,1) )then
                         i = j
                     endif
-                    ! check that cell is connected to cluster
-                    call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
-                    k = 0
-                    do j = 1, N
-                        k = nnL(i,j) + k
-                    enddo
-                enddo
+                    ! write(*,*) 'now          i=',i, tMCS-1
+                endif
             endif
             j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
-            ! calculate average cell size
-            l = 0
-            do k = 1, N
-                call occupyCount( nl, x(i,:,:))
-                l = nl + l
-            enddo
-            write(161,*) speciesX(i), speciesY(i), tMCS-1
-            write(162,*) cellCOM(i,1)-cellCOM(j,1), sqrt( real(l)/real(N)), tMCS-1
+            ! write(161,*) speciesX(i), speciesY(i), tMCS-1 ! output leader cell X, Y
+            write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
+
+            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
+            ! do i = 1, N
+            !     write(161,'(F9.2)', advance='no') speciesX(i)
+            ! enddo
+            ! write(161,*) ''
+            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
+            ! do i = 1, N
+            !     write(162,'(F9.2)', advance='no') speciesY(i)
+            ! enddo
+            ! write(162,*) ''
 
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            ! call wrtPolar( N, p, tMCS)
-            ! call wrtX( N, x, tMCS)
-            ! do i = 1, N
-            !     write(155,*) cellCOM(i,:), tMCS - 1
-            ! enddo
+            call wrtPolar( N, p, tMCS)
+            call wrtX( N, x, tMCS)
+            do i = 1, N
+                write(155,*) cellCOM(i,:), tMCS - 1
+            enddo
         endif
 
         ! calculate d
@@ -429,7 +431,7 @@ MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
 
-! write(108,*) firstpass(nRun) * real(ne0)/neMean
+write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
@@ -444,9 +446,9 @@ MSDrun = MSDrun / real(runTotal)
 
 neMeanRun = neMeanRun / real(runTotal)
 
-! do i = 1, runTotal
-!     write(109,*) firstpass(i) * real(ne0)/neMeanRun
-! enddo
+do i = 1, runTotal
+    write(109,*) firstpass(i) * real(ne0)/neMeanRun
+enddo
 
 
 close(11)
