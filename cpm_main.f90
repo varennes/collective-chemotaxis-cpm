@@ -196,11 +196,11 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 
 
 do while( tMCS < tmax )
@@ -374,33 +374,33 @@ do while( tMCS < tmax )
             ! enddo
             ! write(130+nRun,*) ''
 
-            i = maxloc( cellCOM(:,1), 1) ! find location of leading-edge cell
-            ! check that leading-edge is connected to cluster
-            if( N /= 1 )then
-                call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
-                k = 0
-                do j = 1, N
-                    k = nnL(i,j) + k
-                enddo
-                if( k == 0)then
-                    ! write(*,*) 'no contact!, i=',i, tMCS-1
-                    if( i == 1 )then
-                        i = minloc( cellCOM(:,1), 1)
-                    else
-                        i = maxloc( cellCOM(1:i-1,1), 1)
-                    endif
-                    if( i == N )then
-                        j = minloc( cellCOM(:,1), 1)
-                    else
-                        j = maxloc( cellCOM(i+1:N,1), 1)
-                    endif
-                    if( cellCOM(i,1) < cellCOM(j,1) )then
-                        i = j
-                    endif
-                    ! write(*,*) 'now          i=',i, tMCS-1
-                endif
-            endif
-            j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
+            ! i = maxloc( cellCOM(:,1), 1) ! find location of leading-edge cell
+            ! ! check that leading-edge is connected to cluster
+            ! if( N /= 1 )then
+            !     call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
+            !     k = 0
+            !     do j = 1, N
+            !         k = nnL(i,j) + k
+            !     enddo
+            !     if( k == 0)then
+            !         ! write(*,*) 'no contact!, i=',i, tMCS-1
+            !         if( i == 1 )then
+            !             i = minloc( cellCOM(:,1), 1)
+            !         else
+            !             i = maxloc( cellCOM(1:i-1,1), 1)
+            !         endif
+            !         if( i == N )then
+            !             j = minloc( cellCOM(:,1), 1)
+            !         else
+            !             j = maxloc( cellCOM(i+1:N,1), 1)
+            !         endif
+            !         if( cellCOM(i,1) < cellCOM(j,1) )then
+            !             i = j
+            !         endif
+            !         ! write(*,*) 'now          i=',i, tMCS-1
+            !     endif
+            ! endif
+            ! j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
             ! write(161,*) speciesX(i), speciesY(i), tMCS-1 ! output leader cell X, Y
             ! write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
 
@@ -418,11 +418,11 @@ do while( tMCS < tmax )
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
+            ! call wrtPolar( N, p, tMCS)
+            ! call wrtX( N, x, tMCS)
+            ! do i = 1, N
+            !     write(155,*) cellCOM(i,:), tMCS - 1
+            ! enddo
         endif
 
         ! calculate d
