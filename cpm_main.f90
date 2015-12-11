@@ -353,7 +353,8 @@ do while( tMCS < tmax )
             endif
 
             ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
-            call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
+            ! call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
+            p(i,:) = 0.20*q(i,1)*q(i,:)
             ! write(*,*) 'cell ',i,' p =',p(i,:)
         enddo
 
