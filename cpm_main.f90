@@ -1,4 +1,6 @@
 program cpmcollab
+! program with different way of assigning repulsion vector
+! if the cell is completely encircled q(:) = 0.0
 
 use utility
 use goal
@@ -9,11 +11,11 @@ use wrtout
 
 ! allocate variables
 implicit none
-integer :: i, j, k, ne, ne0, nf, nl, check, aSig, bSig
+integer :: i, inn, j, k, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
-integer :: A0, N, x1, x2
+integer :: A0, N, x1, x2, P1, P2
 integer, dimension(2) :: r0, rCell, rSim
 
 integer, allocatable :: sigma(:,:), sigmaTmp(:,:)
@@ -194,11 +196,11 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-! call wrtX( N, x, tELEM)
-! do i = 1, N
-!     write(155,*) cellCOM(i,:), tELEM - 1
-! enddo
+call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtX( N, x, tELEM)
+do i = 1, N
+    write(155,*) cellCOM(i,:), tELEM - 1
+enddo
 
 
 do while( tMCS < tmax )
@@ -328,19 +330,31 @@ do while( tMCS < tmax )
         do i = 1, N
             ! calculate repulsion vector
             q(i,:) = 0.0
-            do j = 1, N
-                if( nnL(i,j) /= 0 )then
-                    qtmp = cellCOM(i,:) - cellCOM(j,:)
-                    qtmp = qtmp / sqrt( dot_product( qtmp, qtmp))
-                    q(i,:) = q(i,:) + real(nnL(i,j)) * qtmp
-                endif
-            enddo
+            ! calculate perimeter
+            P1 = 0
+
+            ! k = sigma( xcell(1,1), xcell(1,2)) ! cell label
+            ! write(*,*) x(i,:,:)
+            P1 = int(perimCalc(rSim, sigma, x(i,:,:)))
+            P2 = sum(nnL(i,:))
+            ! write(*,*) P1, P2
+            if( P1 /= P2 )then
+                ! write(*,*) 'cell ',i,' is not encircled'
+                do j = 1, N
+                    if( nnL(i,j) /= 0 )then
+                        qtmp = cellCOM(i,:) - cellCOM(j,:)
+                        qtmp = qtmp / sqrt( dot_product( qtmp, qtmp))
+                        q(i,:) = q(i,:) + real(nnL(i,j)) * qtmp
+                    endif
+                enddo
+            endif
             if( dot_product( q(i,:), q(i,:)) /= 0.0 )then
                 q(i,:) = q(i,:) / sqrt( dot_product( q(i,:), q(i,:)))
             endif
 
             ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
             call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
+            ! write(*,*) 'cell ',i,' p =',p(i,:)
         enddo
 
 
@@ -388,7 +402,7 @@ do while( tMCS < tmax )
             endif
             j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
             ! write(161,*) speciesX(i), speciesY(i), tMCS-1 ! output leader cell X, Y
-            write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
+            ! write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
 
             ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
             ! do i = 1, N
@@ -404,11 +418,11 @@ do while( tMCS < tmax )
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            ! call wrtPolar( N, p, tMCS)
-            ! call wrtX( N, x, tMCS)
-            ! do i = 1, N
-            !     write(155,*) cellCOM(i,:), tMCS - 1
-            ! enddo
+            call wrtPolar( N, p, tMCS)
+            call wrtX( N, x, tMCS)
+            do i = 1, N
+                write(155,*) cellCOM(i,:), tMCS - 1
+            enddo
         endif
 
         ! calculate d
