@@ -15,7 +15,7 @@ integer :: i, inn, j, k, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
-integer :: A0, N, x1, x2, P1, P2
+integer :: A0, N, x1, x2, P1, P2, clusterP, clusterA
 integer, dimension(2) :: r0, rCell, rSim
 
 integer, allocatable :: sigma(:,:), sigmaTmp(:,:)
@@ -53,7 +53,7 @@ N       = rCell(1) * rCell(2)
 A0      = r0(1) * r0(2)
 P0      = 3.6*sqrt( real(A0))
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-dreset = 20.0
+dreset = 2.0
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
@@ -327,17 +327,21 @@ do while( tMCS < tmax )
             ! write(166,*) sqrt(dot_product(p(i,:)-ptmp(i,:),p(i,:)-ptmp(i,:)))
         enddo
 
+        clusterA = 0
+        clusterP = 0
         do i = 1, N
             ! calculate repulsion vector
             q(i,:) = 0.0
             ! calculate perimeter
             P1 = 0
+            P2 = 0
+            P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
+            P2 = sum(nnL(i,:)) ! total cell-cell contact
 
-            ! k = sigma( xcell(1,1), xcell(1,2)) ! cell label
-            ! write(*,*) x(i,:,:)
-            P1 = int(perimCalc(rSim, sigma, x(i,:,:)))
-            P2 = sum(nnL(i,:))
-            ! write(*,*) P1, P2
+            clusterP = P1 - P2 + clusterP
+            call occupyCount( nl, x(i,:,:) )
+            clusterA = nl + clusterA
+
             if( P1 /= P2 )then
                 ! write(*,*) 'cell ',i,' is not encircled'
                 do j = 1, N
@@ -368,6 +372,11 @@ do while( tMCS < tmax )
 
         ! write outputs
         if( mod( tMCS-1, 10) == 0)then
+
+            if( treset /= 0 )then
+            ! if( d >= dreset .AND. d < (dreset + 2.0) )then
+                write(190,*) clusterA, clusterP, tMCS-1
+            endif
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
