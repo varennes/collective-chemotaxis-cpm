@@ -170,4 +170,36 @@ subroutine acCheck( dA, dP, A0, P0, rSim, sigma, xcell)
 end subroutine acCheck
 
 
+! calculate perimeter of a cell
+real(b8) function perimCalc(rSim, sigma, xcell)
+    implicit none
+    integer,  intent(in), dimension(:,:) :: sigma
+    integer,  intent(in), dimension(:,:) :: xcell
+    integer,  intent(in), dimension(2) :: rSim
+    integer, dimension(2) :: nn
+    integer :: i, inn, k, nl
+    real(b8) :: P
+
+    P = 0.0
+    k = sigma( xcell(1,1), xcell(1,2)) ! cell label
+    call occupyCount( nl, xcell )
+
+    do i = 1, nl
+        do inn = 1, 4
+            ! write(*,*) xcell(i,1:2)
+            call nnGet( inn, nn, rSim, xcell(i,1:2))
+            if( nn(1) == 0 )then
+                cycle
+            endif
+            if( sigma(nn(1),nn(2)) /= k )then
+                P = P + 1.0
+            endif
+        enddo
+    enddo
+
+    perimCalc = P
+
+end function perimCalc
+
+
 end module

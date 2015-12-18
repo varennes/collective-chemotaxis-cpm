@@ -13,7 +13,7 @@ integer :: i, j, k, ne, ne0, nf, nl, check, aSig, bSig
 integer :: tcount, tELEM, tMCS, tmax
 integer :: nRun, runTotal
 
-integer :: A0, N, x1, x2
+integer :: A0, N, x1, x2, P1, P2, clusterP, clusterA
 integer, dimension(2) :: r0, rCell, rSim
 
 integer, allocatable :: sigma(:,:), sigmaTmp(:,:)
@@ -353,6 +353,24 @@ do while( tMCS < tmax )
 
         ! write outputs
         if( mod( tMCS-1, 10) == 0)then
+
+            ! output cluster area and perimeter
+            if( treset /= 0 )then
+                clusterA = 0
+                clusterP = 0
+                P1 = 0
+                P2 = 0
+                do i = 1, N
+                    P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
+                    P2 = sum(nnL(i,:)) ! total cell-cell contact
+                    if( P2 /= 0 )then
+                        call occupyCount( nl, x(i,:,:) )
+                        clusterP = P1 - P2 + clusterP
+                        clusterA = nl + clusterA
+                    endif
+                enddo
+                write(190,*) clusterA, clusterP, tMCS-1
+            endif
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
