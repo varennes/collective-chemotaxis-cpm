@@ -355,22 +355,22 @@ do while( tMCS < tmax )
         if( mod( tMCS-1, 10) == 0)then
 
             ! output cluster area and perimeter
-            if( treset /= 0 )then
-                clusterA = 0
-                clusterP = 0
-                P1 = 0
-                P2 = 0
-                do i = 1, N
-                    P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
-                    P2 = sum(nnL(i,:)) ! total cell-cell contact
-                    if( P2 /= 0 )then
-                        call occupyCount( nl, x(i,:,:) )
-                        clusterP = P1 - P2 + clusterP
-                        clusterA = nl + clusterA
-                    endif
-                enddo
-                write(190,*) clusterA, clusterP, tMCS-1
-            endif
+            ! if( treset /= 0 )then
+            !     clusterA = 0
+            !     clusterP = 0
+            !     P1 = 0
+            !     P2 = 0
+            !     do i = 1, N
+            !         P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
+            !         P2 = sum(nnL(i,:)) ! total cell-cell contact
+            !         if( P2 /= 0 )then
+            !             call occupyCount( nl, x(i,:,:) )
+            !             clusterP = P1 - P2 + clusterP
+            !             clusterA = nl + clusterA
+            !         endif
+            !     enddo
+            !     write(190,*) clusterA, clusterP, tMCS-1
+            ! endif
 
             ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
             ! do i = 1, N*(N-1)/2
@@ -378,35 +378,36 @@ do while( tMCS < tmax )
             ! enddo
             ! write(130+nRun,*) ''
 
-            i = maxloc( cellCOM(:,1), 1) ! find location of leading-edge cell
-            ! check that leading-edge is connected to cluster
-            if( N /= 1 )then
-                call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
-                k = 0
-                do j = 1, N
-                    k = nnL(i,j) + k
-                enddo
-                if( k == 0)then
-                    ! write(*,*) 'no contact!, i=',i, tMCS-1
-                    if( i == 1 )then
-                        i = minloc( cellCOM(:,1), 1)
-                    else
-                        i = maxloc( cellCOM(1:i-1,1), 1)
+            ! find location of leading-edge cell
+            if( treset /= 0 )then
+                i = maxloc( cellCOM(:,1), 1)
+                ! check that leading-edge is connected to cluster
+                if( N /= 1 )then
+                    call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
+                    k = 0
+                    do j = 1, N
+                        k = nnL(i,j) + k
+                    enddo
+                    if( k == 0)then
+                        if( i == 1 )then
+                            i = minloc( cellCOM(:,1), 1)
+                        else
+                            i = maxloc( cellCOM(1:i-1,1), 1)
+                        endif
+                        if( i == N )then
+                            j = minloc( cellCOM(:,1), 1)
+                        else
+                            j = maxloc( cellCOM(i+1:N,1), 1)
+                        endif
+                        if( cellCOM(i,1) < cellCOM(j,1) )then
+                            i = j
+                        endif
                     endif
-                    if( i == N )then
-                        j = minloc( cellCOM(:,1), 1)
-                    else
-                        j = maxloc( cellCOM(i+1:N,1), 1)
-                    endif
-                    if( cellCOM(i,1) < cellCOM(j,1) )then
-                        i = j
-                    endif
-                    ! write(*,*) 'now          i=',i, tMCS-1
                 endif
+                j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
+                ! write(161,*) speciesX(i), speciesY(i), tMCS-1 ! output leader cell X, Y
+                write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
             endif
-            j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
-            ! write(161,*) speciesX(i), speciesY(i), tMCS-1 ! output leader cell X, Y
-            write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
 
             ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
             ! do i = 1, N
