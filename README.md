@@ -17,8 +17,8 @@ The file `cpm_main.f90` is the main program file which simulates the time evolut
 Functions and subroutines within the module files are annotated in order to explain their use. Module files are organized in the following manner.
 - `mod1util.f90`: Initialization functions and commonly used functions.
 - `mod2sense.f90`: All functions relevant to creating the chemical concentration profile and measuring the chemical gradient.
-- `mod3goal.f90`: All functions pertaining to the evaluation of the energy and bias term for the CPM.
-- `mod3polar.f90`: All functions relevant to assigning individual cell polarization vectors.
+- `mod3goal.f90`: All functions pertaining to the evaluation of the energy term for the CPM.
+- `mod3polar.f90`: All functions relevant to cell polarization and evaluation of the bias for the CPM.
 - `mod3sc.f90`: Functions pertaining to the CPM implementation.
 - `mod3wrt.f90`: Functions that print out simulation information to various output files.
 

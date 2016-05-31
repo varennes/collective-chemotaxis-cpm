@@ -244,7 +244,6 @@ do while( tMCS < tmax )
             aSig = sigma(a(1),a(2))
             bSig = sigma(b(1),b(2))
 
-            ! w = getBias( aSig, bSig, plrP, p, x, xtmp)
             w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
 
             ! write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
@@ -339,7 +338,6 @@ do while( tMCS < tmax )
                 q(i,:) = q(i,:) / sqrt( dot_product( q(i,:), q(i,:)))
             endif
 
-            ! call getPolar3( p(i,:), plrR, q(i,:), speciesR0, speciesR(i), cellCOM(i,:), cellCOMold(i,:))
             call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
         enddo
 
