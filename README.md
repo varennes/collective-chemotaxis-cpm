@@ -28,7 +28,7 @@ Functions and subroutines within the module files are annotated in order to expl
 
 In order for the executable to run, it requires two additional text files in order to initialize certain parameter values. Lines 40-60 in `cpm_main.f90` further explain the purpose of each parameter value.
 
-Below are examples two examples.
+Below are two examples.
 
 ### `input.txt`
 
