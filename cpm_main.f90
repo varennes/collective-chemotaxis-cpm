@@ -40,23 +40,23 @@ call cpu_time(t0)
 open(unit=11,file='input.txt',status='old',action='read')
 read(11,*) r0(1), r0(2)
 read(11,*) rCell(1), rCell(2)
-read(11,*) x1, x2
-read(11,*) rSim(2)
-read(11,*) tmax
-read(11,*) runTotal
-read(11,*) df
+read(11,*) x1, x2   ! rSim(1) = x1+x2, simulation size (length)
+read(11,*) rSim(2)  ! rSim(2) simulation size (width)
+read(11,*) tmax     ! max number of time steps simulation will run
+read(11,*) runTotal ! total number of runs that will be simulated
+read(11,*) df       ! threshold distance for recording first-passage time
 
 rSim(1) = x1 + x2
-N       = rCell(1) * rCell(2)
-A0      = r0(1) * r0(2)
-P0      = 3.6*sqrt( real(A0))
+N       = rCell(1) * rCell(2) ! total number of cells
+A0      = r0(1) * r0(2)       ! relaxed cell size
+P0      = 3.6*sqrt( real(A0)) ! relaxed cell perimeter
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
 dreset = 20.0
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
-read(12,*) plrP
-read(12,*) plrR
+read(12,*) plrP ! initalized polarization vector magnitude
+read(12,*) plrR ! polarization vector decay rate
 
 write(*,*) '   N =',N
 write(*,*) '  A0 =',A0, ' P0 =', P0

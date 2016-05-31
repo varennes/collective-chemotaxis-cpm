@@ -18,9 +18,55 @@ Functions and subroutines within the module files are annotated in order to expl
 - `mod1util.f90`: Initialization functions and commonly used functions.
 - `mod2sense.f90`: All functions relevant to creating the chemical concentration profile and measuring the chemical gradient.
 - `mod3goal.f90`: All functions pertaining to the evaluation of the energy and bias term for the CPM.
-- `mod3polar.f90`: All function relevant to assigning individual cell polarization vectors.
+- `mod3polar.f90`: All functions relevant to assigning individual cell polarization vectors.
 - `mod3sc.f90`: Functions pertaining to the CPM implementation.
 - `mod3wrt.f90`: Functions that print out simulation information to various output files.
+
+## Required input files
+
+**Required input filenames: `input.txt`, `polarInput.txt`**
+
+In order for the executable to run, it requires two additional text files in order to initialize certain parameter values. Lines 40-60 in `cpm_main.f90` further explain the purpose of each parameter value.
+
+Below are examples two examples.
+
+### `input.txt`
+
+Sample file:
+```
+7 7
+2 2
+40 60
+40
+151
+1
+50.0
+```
+
+The different rows in `input.txt` correspond to the following parameter values:
+```
+r0(1), r0(2)
+rCell(1), rCell(2)
+x1, x2
+rSim(2)
+tmax
+runTotal
+df
+```
+
+### `polarInput.txt`
+
+Sample file:
+```
+1.00
+0.20
+```
+
+The different rows in `polarInput.txt` correspond to the following parameter values:
+```
+plrP
+plrR
+```
 
 ## Further Compilation Details
 
