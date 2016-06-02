@@ -6,6 +6,54 @@ use sensing
 contains
 
 
+    ! update polarization vector for Many Wrongs (MW) mechanism
+    subroutine getMWPolar( p, plrR, cellCOM, xcell)
+        implicit none
+        real(b8), intent(in) :: plrR
+        integer,  intent(in),  dimension(:,:) :: xcell
+        real(b8), intent(in),  dimension(:)   :: cellCOM
+        real(b8), intent(inout), dimension(2) :: p
+        real(b8), dimension(2) :: q, qpixel
+        integer :: i, j, nl
+        real(b8) :: ms, s, rx, ry
+
+        q(:) = 0.0
+        call occupyCount( nl, xcell(:,:) )
+        ! iterate over all pixels within one cell
+        do i = 1, nl
+            ms = 0.0
+            s  = 0.0
+            qpixel(:) = 0.0
+
+            rx = real(xcell(i,1))
+            ry = real(xcell(i,2))
+            ! get mean signal at that point
+            ms  = chemE( rx, ry)
+            ! get signal value from distribution
+            if( ms < 100.0 )then
+                call poissonrand( ms, s)
+            else
+                s = normal(ms,sqrt(ms))
+            endif
+            if( s < 0.0 )then
+                s = 0.0
+            endif
+
+            ! calculate pixel vector
+            qpixel(1) = rx - cellCOM(1)
+            qpixel(2) = ry - cellCOM(2)
+
+            q = q + s * qpixel
+            write(*,*) ' s = ',s,' q =',q
+            ! write(*,*) ' qpx = ',qpixel
+        enddo
+        ! write(*,*) ' q = ', q
+
+        p = (1.0 - plrR) * p + (plrR*eps) * q
+
+    end subroutine getMWPolar
+
+
 ! update the polarization vector with sensing and antagonist mech
 subroutine getPolar4( p, plrR, q, R0, Rk)
     implicit none

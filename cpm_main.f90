@@ -161,7 +161,7 @@ cellCOMold = cellCOM
 
 ! initialize polarization
 call itlPolar( N, plrP, p)
-p(:,:) = 0.0
+! p(:,:) = 0.0
 
 ! initializing signaling, sensing
 call getMeanSignal( meanSignal, N, x)
@@ -290,57 +290,24 @@ do while( tMCS < tmax )
         neMean = neMean + real(ne)
 
         ! updated signalling, sensing
-        call getMeanSignal( meanSignal, N, x)
-        call getSpeciesS( meanSignal, N, signal)
-        call getSpeciesX( N, meanSignal, signal, speciesX)
-
-        call makeMtrxGamma( gNN, N, rSim, sigma, x)
-        call makeMtrxM( gNN, M, N)
-
-        call getMeanY( meanSignal, M, meanY, N)
-        call getEtaY( etaY, gNN, meanSignal, meanY, N)
-        call getSpeciesY( etaY, M, N, signal, speciesY)
-        speciesR = speciesX - speciesY
+        ! call getMeanSignal( meanSignal, N, x)
+        ! call getSpeciesS( meanSignal, N, signal)
+        ! call getSpeciesX( N, meanSignal, signal, speciesX)
+        !
+        ! call makeMtrxGamma( gNN, N, rSim, sigma, x)
+        ! call makeMtrxM( gNN, M, N)
+        !
+        ! call getMeanY( meanSignal, M, meanY, N)
+        ! call getEtaY( etaY, gNN, meanSignal, meanY, N)
+        ! call getSpeciesY( etaY, M, N, signal, speciesY)
+        ! speciesR = speciesX - speciesY
 
         ! update polarization vector
-        ptmp = p
-
-        k = 0
-        deltaCOM = 0.0
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
-
-            ! calculate intercell distances
-            do j = i+1, N
-                k = k + 1
-                deltaCOM(k) = sqrt( dot_product( cellCOM(i,:)-cellCOM(j,:), cellCOM(i,:)-cellCOM(j,:) ) )
-            enddo
-
-            dXtMCS(i) = sqrt( dot_product( cellCOM(i,:)-cellCOMold(i,:), cellCOM(i,:)-cellCOMold(i,:) ) )
-
-            call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
-
-            ! write(*,*) '  N =',i, speciesR(i)/speciesR0, dXtMCS
-            ! write(166,*) sqrt(dot_product(p(i,:)-ptmp(i,:),p(i,:)-ptmp(i,:)))
+            write(*,*) 'cellCOM =', cellCOM(i,:)
+            call getMWPolar( p, plrR, cellCOM(i,:), x(i,:,:))
         enddo
-
-        do i = 1, N
-            ! calculate repulsion vector
-            q(i,:) = 0.0
-            do j = 1, N
-                if( nnL(i,j) /= 0 )then
-                    qtmp = cellCOM(i,:) - cellCOM(j,:)
-                    qtmp = qtmp / sqrt( dot_product( qtmp, qtmp))
-                    q(i,:) = q(i,:) + real(nnL(i,j)) * qtmp
-                endif
-            enddo
-            if( dot_product( q(i,:), q(i,:)) /= 0.0 )then
-                q(i,:) = q(i,:) / sqrt( dot_product( q(i,:), q(i,:)))
-            endif
-
-            call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
-        enddo
-
 
         cellCOMold = cellCOM
 
@@ -370,43 +337,6 @@ do while( tMCS < tmax )
             !     write(190,*) clusterA, clusterP, tMCS-1
             ! endif
 
-            ! write(130+nRun,'(I7)', advance='no') tMCS-1 ! write intercell distances
-            ! do i = 1, N*(N-1)/2
-            !     write(130+nRun,'(F7.2)', advance='no') deltaCOM(i)
-            ! enddo
-            ! write(130+nRun,*) ''
-
-            ! find location of leading-edge cell
-            if( treset /= 0 )then
-                i = maxloc( cellCOM(:,1), 1)
-                ! check that leading-edge is connected to cluster
-                if( N /= 1 )then
-                    call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
-                    k = 0
-                    do j = 1, N
-                        k = nnL(i,j) + k
-                    enddo
-                    if( k == 0)then
-                        if( i == 1 )then
-                            i = minloc( cellCOM(:,1), 1)
-                        else
-                            i = maxloc( cellCOM(1:i-1,1), 1)
-                        endif
-                        if( i == N )then
-                            j = minloc( cellCOM(:,1), 1)
-                        else
-                            j = maxloc( cellCOM(i+1:N,1), 1)
-                        endif
-                        if( cellCOM(i,1) < cellCOM(j,1) )then
-                            i = j
-                        endif
-                    endif
-                endif
-                j = minloc( cellCOM(:,1), 1) ! find location of trailing cell
-                ! write(161,*) speciesX(i), speciesY(i), tMCS-1 ! output leader cell X, Y
-                write(130+nRun,*) cellCOM(i,1)-cellCOM(j,1), tMCS-1 ! output leading-trailing cell distance
-            endif
-
             ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
             ! do i = 1, N
             !     write(161,'(F9.2)', advance='no') speciesX(i)
@@ -421,11 +351,11 @@ do while( tMCS < tmax )
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            ! call wrtPolar( N, p, tMCS)
-            ! call wrtX( N, x, tMCS)
-            ! do i = 1, N
-            !     write(155,*) cellCOM(i,:), tMCS - 1
-            ! enddo
+            call wrtPolar( N, p, tMCS)
+            call wrtX( N, x, tMCS)
+            do i = 1, N
+                write(155,*) cellCOM(i,:), tMCS - 1
+            enddo
         endif
 
         ! calculate d
