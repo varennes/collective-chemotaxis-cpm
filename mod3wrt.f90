@@ -150,7 +150,7 @@ subroutine wrtPolar( N, p, tstep)
     integer :: i
 
     do i = 1, N
-        write(140,*) p(i,:), tstep - 1
+        write(140,*) p(i,:), i, tstep - 1
     enddo
 
 end subroutine wrtPolar

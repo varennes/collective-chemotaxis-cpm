@@ -153,14 +153,15 @@ rSim(1) = x1
 call makeX( N, rSim, sigma, x)
 
 ! initialize xCOM and cellCOM
+! initialize polarization
 call calcXCOM( N, x, xCOM(1,:))
 do i = 1, N
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
+    call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
 enddo
 cellCOMold = cellCOM
 
-! initialize polarization
-call itlPolar( N, plrP, p)
+! call itlPolar( N, plrP, p)
 ! p(:,:) = 0.0
 
 ! initializing signaling, sensing
@@ -194,7 +195,7 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
 ! call wrtX( N, x, tELEM)
 ! do i = 1, N
 !     write(155,*) cellCOM(i,:), tELEM - 1
@@ -246,7 +247,7 @@ do while( tMCS < tmax )
 
             w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
 
-            ! write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
+            write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
 
             uNew = goalEval1( A0, P0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
@@ -305,8 +306,8 @@ do while( tMCS < tmax )
         ! update polarization vector
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
-            write(*,*) 'cellCOM =', cellCOM(i,:)
-            call getMWPolar( p, plrR, cellCOM(i,:), x(i,:,:))
+            ! write(*,*) 'cellCOM =', cellCOM(i,:)
+            call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
         enddo
 
         cellCOMold = cellCOM

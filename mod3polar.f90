@@ -15,9 +15,10 @@ contains
         real(b8), intent(inout), dimension(2) :: p
         real(b8), dimension(2) :: q, qpixel
         integer :: i, j, nl
-        real(b8) :: ms, s, rx, ry
+        real(b8) :: ms, s, rx, ry, qmag
 
         q(:) = 0.0
+        qmag = 1.0
         call occupyCount( nl, xcell(:,:) )
         ! iterate over all pixels within one cell
         do i = 1, nl
@@ -44,10 +45,14 @@ contains
             qpixel(2) = ry - cellCOM(2)
 
             q = q + s * qpixel
-            write(*,*) ' s = ',s,' q =',q
+            ! write(*,*) ' s = ',s,' q =',q
             ! write(*,*) ' qpx = ',qpixel
         enddo
-        ! write(*,*) ' q = ', q
+        ! make q a unit vector
+        qmag = sqrt( dot_product( q, q) )
+        ! write(*,*) ' qmag =', qmag
+        q = q / qmag
+        ! write(*,*) ' q =', q, sqrt( dot_product( q, q) )
 
         p = (1.0 - plrR) * p + (plrR*eps) * q
 
@@ -121,6 +126,7 @@ real(b8) function getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
     real(b8) :: sum1, sum2
 
     getBias2 = 0.0
+    ! write(*,*) 'getBias2 function', aSig, bsig
 
     sum1 = 0.0
     if( aSig /= 0 .AND. dXtMCS(aSig) > 1e-10 )then
@@ -128,6 +134,7 @@ real(b8) function getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
         call calcCellCOM( xtmp(aSig,:,:), comNew)
 
         sum1 = dot_product( (comNew-comOld), p(aSig,:))
+        ! write(*,*) 'p =', p(aSig,:)
 
         if( sum1 /= 0.0 )then
             sum1 = sum1 / dXtMCS(aSig)
@@ -141,6 +148,7 @@ real(b8) function getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
         call calcCellCOM( xtmp(bSig,:,:), comNew)
 
         sum2 = dot_product( (comNew-comOld), p(bSig,:))
+        write(*,*) 'p =', p(aSig,:)
 
         if( sum2 /= 0.0 )then
             sum2 = sum2 / dXtMCS(bSig)
