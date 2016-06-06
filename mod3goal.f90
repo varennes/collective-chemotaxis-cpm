@@ -2,7 +2,7 @@ module goal
 
 use utility
 
-real(b8), parameter :: alpha = 1.0, beta = 2.0
+real(b8), parameter :: alpha = 1.0, beta = 3.0
 real(b8), parameter :: lambdaA = 1.5, lambdaP = 0.01
 
 contains

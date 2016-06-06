@@ -161,26 +161,8 @@ do i = 1, N
 enddo
 cellCOMold = cellCOM
 
-! call itlPolar( N, plrP, p)
-! p(:,:) = 0.0
-
-! initializing signaling, sensing
-call getMeanSignal( meanSignal, N, x)
-call getSpeciesS( meanSignal, N, signal)
-call getSpeciesX( N, meanSignal, signal, speciesX)
-
-rSim(1) = x1 + x2
-call makeMtrxGamma( gNN, N, rSim, sigma, x)
-call makeMtrxM( gNN, M, N)
-
-call getMeanY( meanSignal, M, meanY, N)
-call getEtaY( etaY, gNN, meanSignal, meanY, N)
-call getSpeciesY( etaY, M, N, signal, speciesY)
-speciesR = speciesX - speciesY
-speciesR0 = sqrt( sum(meanSignal) / real(N)) ! standard deviation in R
-
-write(*,*) '  R0 =',speciesR0
-write(*,*) ' eps =',eps
+write(*,*) ' beta =',beta
+write(*,*) ' eps  =',eps
 write(*,*)
 
 ! calculate initial energy
@@ -247,7 +229,7 @@ do while( tMCS < tmax )
 
             w = getBias2( aSig, bSig, dXtMCS, p, x, xtmp)
 
-            write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
+            ! write(*,*) '  w =',w,'a =',aSig,'b =',bSig,'dx =',dXtMCS(aSig),dXtMCS(bSig)
 
             uNew = goalEval1( A0, P0, N, rSim, sigmaTmp, xTmp)
             prob = probEval( uNew, uOld, w)
@@ -290,18 +272,17 @@ do while( tMCS < tmax )
 
         neMean = neMean + real(ne)
 
-        ! updated signalling, sensing
-        ! call getMeanSignal( meanSignal, N, x)
-        ! call getSpeciesS( meanSignal, N, signal)
-        ! call getSpeciesX( N, meanSignal, signal, speciesX)
-        !
-        ! call makeMtrxGamma( gNN, N, rSim, sigma, x)
-        ! call makeMtrxM( gNN, M, N)
-        !
-        ! call getMeanY( meanSignal, M, meanY, N)
-        ! call getEtaY( etaY, gNN, meanSignal, meanY, N)
-        ! call getSpeciesY( etaY, M, N, signal, speciesY)
-        ! speciesR = speciesX - speciesY
+        k = 0
+        deltaCOM = 0.0
+        do i = 1, N
+            call calcCellCOM( x(i,:,:),  cellCOM(i,:))
+            ! calculate intercell distances
+            do j = i+1, N
+                k = k + 1
+                deltaCOM(k) = sqrt( dot_product( cellCOM(i,:)-cellCOM(j,:), cellCOM(i,:)-cellCOM(j,:) ) )
+            enddo
+            dXtMCS(i) = sqrt( dot_product( cellCOM(i,:)-cellCOMold(i,:), cellCOM(i,:)-cellCOMold(i,:) ) )
+        enddo
 
         ! update polarization vector
         do i = 1, N
