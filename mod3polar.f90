@@ -6,57 +6,123 @@ use sensing
 contains
 
 
-    ! update polarization vector for Many Wrongs (MW) mechanism
-    subroutine getMWPolar( p, plrR, cellCOM, xcell)
-        implicit none
-        real(b8), intent(in) :: plrR
-        integer,  intent(in),  dimension(:,:) :: xcell
-        real(b8), intent(in),  dimension(:)   :: cellCOM
-        real(b8), intent(inout), dimension(2) :: p
-        real(b8), dimension(2) :: q, qpixel
-        integer :: i, j, nl
-        real(b8) :: ms, s, rx, ry, qmag
+! caclulate polarization vector using edge pixels of a cell
+subroutine getMWPolar2( p, plrR, rSim, sigma, xcell)
+    implicit none
+    real(b8), intent(in) :: plrR
+    integer,  intent(in), dimension(:,:)  :: sigma, xcell
+    integer,  intent(in), dimension(2)    :: rSim
+    real(b8), intent(inout), dimension(2) :: p
+    real(b8), dimension(2) :: q, qtot
+    integer,  dimension(2) :: nn
+    integer :: edge, i, nl
+    real(b8) :: ms, s, rx, ry
 
-        q(:) = 0.0
-        qmag = 1.0
-        call occupyCount( nl, xcell(:,:) )
-        ! iterate over all pixels within one cell
-        do i = 1, nl
-            ms = 0.0
-            s  = 0.0
-            qpixel(:) = 0.0
-
-            rx = real(xcell(i,1))
-            ry = real(xcell(i,2))
-            ! get mean signal at that point
-            ms  = chemE( rx, ry)
-            ! get signal value from distribution
-            if( ms < 100.0 )then
-                call poissonrand( ms, s)
-            else
-                s = normal(ms,sqrt(ms))
+    qtot(:) = 0.0_b8
+    nl = 1
+    ! iterate over all pixels in a cell
+    do while( xcell(nl,1) /= 0 )
+        ! check whether pixel xcell(nl,:) is on an edge
+        q(:) = 0.0_b8
+        edge = 0
+        do i = 1, 4
+            call nnGet( i, nn, rSim, xcell(nl,:))
+            if( nn(1) == 0 )then
+                cycle
             endif
-            if( s < 0.0 )then
-                s = 0.0
+            if( sigma(xcell(nl,1),xcell(nl,2)) /= sigma(nn(1),nn(2)) )then
+                ! ls is an edge
+                q(:) = xcell(nl,:) - nn(:) + q(:)
+                edge = edge + 1
             endif
-
-            ! calculate pixel vector
-            qpixel(1) = rx - cellCOM(1)
-            qpixel(2) = ry - cellCOM(2)
-
-            q = q + s * qpixel
-            ! write(*,*) ' s = ',s,' q =',q
-            ! write(*,*) ' qpx = ',qpixel
         enddo
-        ! make q a unit vector
-        qmag = sqrt( dot_product( q, q) )
-        ! write(*,*) ' qmag =', qmag
-        q = q / qmag
-        ! write(*,*) ' q =', q, sqrt( dot_product( q, q) )
+        ! normalize q vector
+        if( dot_product(q,q) /= 0.0 )then
+            q = q / sqrt( dot_product(q,q) )
+        endif
+        ! write(*,*) 'pixel',nl,'q =',q
+        ms = 0.0
+        s  = 0.0
+        rx = real(xcell(i,1))
+        ry = real(xcell(i,2))
+        ! get mean signal at that point
+        ms  = chemE( rx, ry)
+        ! get signal value from distribution
+        if( ms < 100.0 )then
+            call poissonrand( ms, s)
+        else
+            s = normal(ms,sqrt(ms))
+        endif
+        if( s < 0.0 )then
+            s = 0.0
+        endif
+        q = s * q
+        qtot = qtot + q
 
-        p = (1.0 - plrR) * p + (plrR*eps) * q
+        nl = nl + 1
+    enddo
+    ! normalize qtot vector
+    if( dot_product(qtot,qtot) /= 0.0 )then
+        qtot = qtot / sqrt( dot_product(qtot,qtot) )
+    endif
+    ! write(*,*) 'qtot =', qtot
+    ! update polarization vector
+    p = (1.0 - plrR) * p + (plrR*eps) * qtot
 
-    end subroutine getMWPolar
+end subroutine getMWPolar2
+
+
+! update polarization vector for Many Wrongs (MW) mechanism
+subroutine getMWPolar( p, plrR, cellCOM, xcell)
+    implicit none
+    real(b8), intent(in) :: plrR
+    integer,  intent(in),  dimension(:,:) :: xcell
+    real(b8), intent(in),  dimension(:)   :: cellCOM
+    real(b8), intent(inout), dimension(2) :: p
+    real(b8), dimension(2) :: q, qpixel
+    integer :: i, j, nl
+    real(b8) :: ms, s, rx, ry, qmag
+
+    q(:) = 0.0
+    qmag = 1.0
+    call occupyCount( nl, xcell(:,:) )
+    ! iterate over all pixels within one cell
+    do i = 1, nl
+        ms = 0.0
+        s  = 0.0
+        qpixel(:) = 0.0
+
+        rx = real(xcell(i,1))
+        ry = real(xcell(i,2))
+        ! get mean signal at that point
+        ms  = chemE( rx, ry)
+        ! get signal value from distribution
+        if( ms < 100.0 )then
+            call poissonrand( ms, s)
+        else
+            s = normal(ms,sqrt(ms))
+        endif
+        if( s < 0.0 )then
+            s = 0.0
+        endif
+
+        ! calculate pixel vector
+        qpixel(1) = rx - cellCOM(1)
+        qpixel(2) = ry - cellCOM(2)
+
+        q = q + s * qpixel
+        ! write(*,*) ' s = ',s,' q =',q
+        ! write(*,*) ' qpx = ',qpixel
+    enddo
+    ! make q a unit vector
+    qmag = sqrt( dot_product( q, q) )
+    ! write(*,*) ' qmag =', qmag
+    q = q / qmag
+    ! write(*,*) ' q =', q, sqrt( dot_product( q, q) )
+
+    p = (1.0 - plrR) * p + (plrR*eps) * q
+
+end subroutine getMWPolar
 
 
 ! update the polarization vector with sensing and antagonist mech

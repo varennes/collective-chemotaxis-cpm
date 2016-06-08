@@ -157,7 +157,8 @@ call makeX( N, rSim, sigma, x)
 call calcXCOM( N, x, xCOM(1,:))
 do i = 1, N
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
-    call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+    ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+    call getMWPolar2( p, plrR, rSim, sigma, x(i,:,:))
 enddo
 cellCOMold = cellCOM
 
@@ -288,7 +289,8 @@ do while( tMCS < tmax )
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
             ! write(*,*) 'cellCOM =', cellCOM(i,:)
-            call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+            ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+            call getMWPolar2( p, plrR, rSim, sigma, x(i,:,:))
         enddo
 
         cellCOMold = cellCOM
