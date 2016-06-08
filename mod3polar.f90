@@ -32,32 +32,34 @@ subroutine getMWPolar2( p, plrR, rSim, sigma, xcell)
             endif
             if( sigma(xcell(nl,1),xcell(nl,2)) /= sigma(nn(1),nn(2)) )then
                 ! ls is an edge
-                q(:) = xcell(nl,:) - nn(:) + q(:)
+                q(:) = real(nn(:)) - real(xcell(nl,:)) + q(:)
                 edge = edge + 1
             endif
         enddo
-        ! normalize q vector
-        if( dot_product(q,q) /= 0.0 )then
-            q = q / sqrt( dot_product(q,q) )
-        endif
-        ! write(*,*) 'pixel',nl,'q =',q
+        ! normalize q vector and sample signal
         ms = 0.0
         s  = 0.0
-        rx = real(xcell(i,1))
-        ry = real(xcell(i,2))
-        ! get mean signal at that point
-        ms  = chemE( rx, ry)
-        ! get signal value from distribution
-        if( ms < 100.0 )then
-            call poissonrand( ms, s)
-        else
-            s = normal(ms,sqrt(ms))
+        if( dot_product(q,q) /= 0.0 )then
+            q = q / sqrt( dot_product(q,q) )
+            ! write(*,*) 'pixel',nl,'q =',q
+            rx = real(xcell(nl,1))
+            ry = real(xcell(nl,2))
+            ! get mean signal at that point
+            ms  = chemE( rx, ry)
+            ! get signal value from distribution
+            if( ms < 100.0 )then
+                call poissonrand( ms, s)
+            else
+                s = normal(ms,sqrt(ms))
+            endif
+            if( s < 0.0 )then
+                s = 0.0
+            endif
+            ! write(*,*) 'ms =', ms,'s =',s,'q =', q
+            q = s * q
+            qtot = qtot + q
+            ! write(*,*) 'qtot =',qtot
         endif
-        if( s < 0.0 )then
-            s = 0.0
-        endif
-        q = s * q
-        qtot = qtot + q
 
         nl = nl + 1
     enddo

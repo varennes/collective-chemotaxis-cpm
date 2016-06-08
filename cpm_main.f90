@@ -139,8 +139,8 @@ b = 1
 
 ! initialize sigma
 rSim(1) = x1
-call itlSigma( r0, rCell, rSim, sigma)
-! call itlSigmaRandom( N, r0, rCell, rSim, sigma)
+! call itlSigma( r0, rCell, rSim, sigma)
+call itlSigmaRandom( N, r0, rCell, rSim, sigma)
 ! call itlSigmaSuper( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
@@ -155,10 +155,11 @@ call makeX( N, rSim, sigma, x)
 ! initialize xCOM and cellCOM
 ! initialize polarization
 call calcXCOM( N, x, xCOM(1,:))
+p(:,:) = 0.0_b8
 do i = 1, N
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
-    ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
-    call getMWPolar2( p, plrR, rSim, sigma, x(i,:,:))
+    call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+    ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
 enddo
 cellCOMold = cellCOM
 
@@ -178,7 +179,7 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
 ! call wrtX( N, x, tELEM)
 ! do i = 1, N
 !     write(155,*) cellCOM(i,:), tELEM - 1
@@ -289,8 +290,8 @@ do while( tMCS < tmax )
         do i = 1, N
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
             ! write(*,*) 'cellCOM =', cellCOM(i,:)
-            ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
-            call getMWPolar2( p, plrR, rSim, sigma, x(i,:,:))
+            call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+            ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
         enddo
 
         cellCOMold = cellCOM
@@ -301,46 +302,46 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
-
-            ! output cluster area and perimeter
-            ! if( treset /= 0 )then
-            !     clusterA = 0
-            !     clusterP = 0
-            !     P1 = 0
-            !     P2 = 0
-            !     do i = 1, N
-            !         P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
-            !         P2 = sum(nnL(i,:)) ! total cell-cell contact
-            !         if( P2 /= 0 )then
-            !             call occupyCount( nl, x(i,:,:) )
-            !             clusterP = P1 - P2 + clusterP
-            !             clusterA = nl + clusterA
-            !         endif
-            !     enddo
-            !     write(190,*) clusterA, clusterP, tMCS-1
-            ! endif
-
-            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
-            ! do i = 1, N
-            !     write(161,'(F9.2)', advance='no') speciesX(i)
-            ! enddo
-            ! write(161,*) ''
-            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
-            ! do i = 1, N
-            !     write(162,'(F9.2)', advance='no') speciesY(i)
-            ! enddo
-            ! write(162,*) ''
-
-            ! call wrtSigma( rSim, sigma, tMCS)
-            ! write(150,*) xCOM(tMCS,:), tMCS
-            ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
-        endif
+        ! if( mod( tMCS-1, 10) == 0)then
+        !
+        !     ! output cluster area and perimeter
+        !     ! if( treset /= 0 )then
+        !     !     clusterA = 0
+        !     !     clusterP = 0
+        !     !     P1 = 0
+        !     !     P2 = 0
+        !     !     do i = 1, N
+        !     !         P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
+        !     !         P2 = sum(nnL(i,:)) ! total cell-cell contact
+        !     !         if( P2 /= 0 )then
+        !     !             call occupyCount( nl, x(i,:,:) )
+        !     !             clusterP = P1 - P2 + clusterP
+        !     !             clusterA = nl + clusterA
+        !     !         endif
+        !     !     enddo
+        !     !     write(190,*) clusterA, clusterP, tMCS-1
+        !     ! endif
+        !
+        !     ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
+        !     ! do i = 1, N
+        !     !     write(161,'(F9.2)', advance='no') speciesX(i)
+        !     ! enddo
+        !     ! write(161,*) ''
+        !     ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
+        !     ! do i = 1, N
+        !     !     write(162,'(F9.2)', advance='no') speciesY(i)
+        !     ! enddo
+        !     ! write(162,*) ''
+        !
+        !     ! call wrtSigma( rSim, sigma, tMCS)
+        !     ! write(150,*) xCOM(tMCS,:), tMCS
+        !     ! call wrtXR( N, x, speciesR, tMCS)
+        !     ! call wrtPolar( N, p, tMCS)
+        !     ! call wrtX( N, x, tMCS)
+        !     ! do i = 1, N
+        !     !     write(155,*) cellCOM(i,:), tMCS - 1
+        !     ! enddo
+        ! endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
