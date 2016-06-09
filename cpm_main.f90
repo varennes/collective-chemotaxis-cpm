@@ -51,7 +51,8 @@ N       = rCell(1) * rCell(2) ! total number of cells
 A0      = r0(1) * r0(2)       ! relaxed cell size
 P0      = 3.6*sqrt( real(A0)) ! relaxed cell perimeter
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-dreset = 20.0
+dreset = 10.0
+df = dreset + df
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
@@ -61,7 +62,7 @@ read(12,*) plrR ! polarization vector decay rate
 write(*,*) '   N =',N
 write(*,*) '  A0 =',A0, ' P0 =', P0
 write(*,*) 'rSim =',rSim
-write(*,*) '  df =',df
+write(*,*) '  df =',df - dreset
 write(*,*) 'plrP =',plrP,' plrR =',plrR
 write(*,*)
 
@@ -356,7 +357,7 @@ do while( tMCS < tmax )
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
         if( treset == 0.0 )then
-            if( d >= dreset .AND. d < (dreset + 2.0) )then
+            if( d >= dreset )then
                 treset = tMCS - 1
             endif
         endif
