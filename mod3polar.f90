@@ -1,9 +1,63 @@
 module polar
 
 use utility
+use goal
 use sensing
 
 contains
+
+
+subroutine getECPolar( i, N, p, cellCOM, ms, plrR, rSim, sigma, xcell, xCOM)
+    implicit none
+    integer,  intent(in) :: i, N
+    real(b8), intent(in) :: ms, plrR
+    real(b8), intent(inout), dimension(2) :: p
+    real(b8), intent(in), dimension(:,:)  :: cellCOM
+    integer,  intent(in), dimension(2)    :: rSim
+    integer,  intent(in), dimension(:,:)  :: sigma, xcell
+    real(b8), intent(in), dimension(2)    :: xCOM
+    real(b8), dimension(2) :: q, qtmp
+    integer,  dimension(N) :: nnL
+    integer  :: j, P1, P2
+    real(b8) :: msCOM, s
+
+    q(:) = 0.0_b8
+
+    ! get mean signal at cluster COM
+    msCOM  = chemE( xCOM(1), xCOM(2))
+
+    call getContactL( i, N, nnL, rSim, sigma, xcell)
+    ! check if cell is enclosed
+    P1 = int(perimCalc(rSim, sigma, xcell))
+    P2 = sum(nnL)
+    if( P1 /= P2 )then
+        ! calculate repulsion vector
+        do j = 1, N
+            if( nnL(j) /= 0 )then
+                qtmp = cellCOM(i,:) - cellCOM(j,:)
+                qtmp = qtmp / sqrt( dot_product( qtmp, qtmp))
+                q(:) = q(:) + real(nnL(j)) * qtmp
+            endif
+        enddo
+        if( dot_product( q, q) /= 0.0 )then
+            q = q / sqrt( dot_product( q, q))
+        endif
+        ! get signal value from distribution
+        if( ms < 100.0 )then
+            call poissonrand( ms, s)
+        else
+            s = normal(ms,sqrt(ms))
+        endif
+        if( s < 0.0 )then
+            s = 0.0
+        endif
+        q = s * q / msCOM
+    endif
+    ! write(*,*) 'q =', q
+    ! update polarization vector
+    p = (1.0 - plrR) * p + (plrR*eps) * q
+
+end subroutine getECPolar
 
 
 ! caclulate polarization vector using edge pixels of a cell

@@ -8,7 +8,7 @@ module sensing
     real(b8), parameter :: g0 = 0.0_b8
     real(b8), parameter :: gapFlow = 10000.0
     real(b8), parameter :: kappa   = 100.0, mu = 1.0
-    real(b8), parameter :: eps = 1.0_b8
+    real(b8), parameter :: eps = 0.50_b8
 
 contains
 
