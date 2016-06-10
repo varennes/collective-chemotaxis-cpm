@@ -2,8 +2,8 @@ module goal
 
 use utility
 
-real(b8), parameter :: alpha = 1.0, beta = 3.0
-real(b8), parameter :: lambdaA = 1.5, lambdaP = 0.01
+real(b8), parameter :: alpha = 0.50_b8, beta = 3.0_b8
+real(b8), parameter :: lambdaA = 1.0_b8, lambdaP = 0.10_b8
 
 contains
 

@@ -314,36 +314,6 @@ do while( tMCS < tmax )
 
         ! write outputs
         if( mod( tMCS-1, 10) == 0)then
-
-            ! output cluster area and perimeter
-            ! if( treset /= 0 )then
-            !     clusterA = 0
-            !     clusterP = 0
-            !     P1 = 0
-            !     P2 = 0
-            !     do i = 1, N
-            !         P1 = int(perimCalc(rSim, sigma, x(i,:,:))) ! whole cell perimeter
-            !         P2 = sum(nnL(i,:)) ! total cell-cell contact
-            !         if( P2 /= 0 )then
-            !             call occupyCount( nl, x(i,:,:) )
-            !             clusterP = P1 - P2 + clusterP
-            !             clusterA = nl + clusterA
-            !         endif
-            !     enddo
-            !     write(190,*) clusterA, clusterP, tMCS-1
-            ! endif
-
-            ! write(161,'(I7)', advance='no') tMCS-1 ! write species X
-            ! do i = 1, N
-            !     write(161,'(F9.2)', advance='no') speciesX(i)
-            ! enddo
-            ! write(161,*) ''
-            ! write(162,'(I7)', advance='no') tMCS-1 ! write species Y
-            ! do i = 1, N
-            !     write(162,'(F9.2)', advance='no') speciesY(i)
-            ! enddo
-            ! write(162,*) ''
-
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
