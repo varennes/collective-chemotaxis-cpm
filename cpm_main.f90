@@ -140,8 +140,8 @@ b = 1
 
 ! initialize sigma
 rSim(1) = x1
-call itlSigma( r0, rCell, rSim, sigma)
-! call itlSigmaRandom( N, r0, rCell, rSim, sigma)
+! call itlSigma( r0, rCell, rSim, sigma)
+call itlSigmaRandom( N, r0, rCell, rSim, sigma)
 ! call itlSigmaSuper( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
@@ -313,16 +313,16 @@ do while( tMCS < tmax )
         cellCOMold = cellCOM
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
-            ! call wrtSigma( rSim, sigma, tMCS)
-            ! write(150,*) xCOM(tMCS,:), tMCS
-            ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
-        endif
+        ! if( mod( tMCS-1, 10) == 0)then
+        !     ! call wrtSigma( rSim, sigma, tMCS)
+        !     ! write(150,*) xCOM(tMCS,:), tMCS
+        !     ! call wrtXR( N, x, speciesR, tMCS)
+        !     call wrtPolar( N, p, tMCS)
+        !     call wrtX( N, x, tMCS)
+        !     do i = 1, N
+        !         write(155,*) cellCOM(i,:), tMCS - 1
+        !     enddo
+        ! endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
