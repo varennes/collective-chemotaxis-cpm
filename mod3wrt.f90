@@ -5,6 +5,111 @@ use utility
 contains
 
 
+! calculate the mean cluster size in the system
+! MUST HAVE UP TO DATE nnL array. run "getContactL" to update nnL.
+! output mean cluster size to fort.230+nRun
+! output list of different clusters at a given timestep to 210+nRun
+subroutine wrtClstrSize( N, nnL, nRun, tMCS)
+    implicit none
+    integer, intent(in) :: N, nRun, tMCS
+    integer, intent(in), dimension(:,:) :: nnL
+    integer, dimension(N+2,N+2) :: clusterList
+    integer :: i, ii, in, j, k, l, ll
+    integer :: ic, icTotal, clCheck, nc, ncTotal, ncNew, ncOld
+    real(b8) :: nsub
+    ! output cluster sizes and mean subcluster size
+    ic = 1
+    icTotal = 1
+    ncTotal = 1
+    clusterList(:,:) = 0
+    clusterList(icTotal,1) = 1
+    do i = 1, N
+        clCheck = 0
+        do ii = 1, icTotal
+            ! do in = 1, ncTotal
+            do in = 1, N
+                if( clusterList(ii,in) == i )then
+                    clCheck = 1
+                    exit
+                endif
+            enddo
+            if( clCheck == 1 )then
+                exit
+            endif
+        enddo
+        if( clCheck == 0 )then
+            icTotal = icTotal + 1
+            clusterList(icTotal,1) = i
+            ic = icTotal
+        endif
+        ncTotal = 0
+        do in = 1, N
+            if( clusterList(ic,in) /= 0 )then
+                ncTotal = ncTotal + 1
+            endif
+        enddo
+        ncOld = 0
+        ncNew = ncTotal
+        ! write(*,*) ''
+        ! write(*,*) 'i = ', i,'| icTotal = ',icTotal,' ncTotal= ',ncTotal
+        do while( ncOld /= ncNew )
+            nc = 0
+            ncOld = ncNew
+            ! write(*,*)
+            ! write(*,*) 'while strt, ncOld =',ncOld
+            do j = 1, ncOld
+                k = clusterList(ic,j)
+                do l = 1, N
+                    clCheck = 0
+                    if( nnL(k,l) /= 0 )then
+                        ! write(*,*) 'nnL /= 0 for k=',k, '& l=',l,' clCheck=',clCheck
+                        do ll = 1, ncOld+nc
+                            if( clusterList(ic,ll) == l )then
+                                clCheck = 1
+                                exit
+                            endif
+                        enddo
+                        if( clCheck == 0 )then
+                            nc = nc + 1
+                            clusterList(ic,ncOld+nc) = l
+                            ! write(*,*) 'ncOld+nc =',ncOld+nc,'l=',l
+                        endif
+                    endif
+                enddo
+            enddo
+            ncNew = ncOld + nc
+            ! write(*,*) ncNew
+            ! write(*,*) clusterList(ic,:)
+        enddo
+        ncTotal = ncNew
+        ! write(*,*)
+        ! write(*,*) 'i = ', i,'|', clusterList(ic,:)
+    enddo
+    k = 0
+    nsub = 0.0
+    do i = 1, icTotal
+        nc = 0
+        do j = 1, N
+            if( clusterList(i,j) /= 0 )then
+                nc = nc + 1
+            endif
+        enddo
+        nsub = real(nc)**2/real(N) + nsub
+        ! write(210+nRun,'(I3)', advance='no') nc
+        k = k + nc
+    enddo
+    ! write(210+nRun,*) ''
+
+    write(230+nRun,'(F7.2)', advance='no') nsub
+    write(230+nRun,'(I7)', advance='no') tMCS-1
+    write(230+nRun,*) ''
+    if( k /= N )then
+        write(*,*)'clusterSize: ERROR - you done goofed! k/=N'
+    endif
+
+end subroutine wrtClstrSize
+
+
 ! outputs sigma to fort.101
 subroutine wrtSigma( rSim, sigma, tstep)
     ! rlxArea = preferred area of one cell

@@ -158,6 +158,7 @@ call makeX( N, rSim, sigma, x)
 call calcXCOM( N, x, xCOM(1,:))
 p(:,:) = 0.0_b8
 do i = 1, N
+    call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
     ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
     ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
@@ -189,6 +190,7 @@ uNew = 0.0
 ! do i = 1, N
 !     write(155,*) cellCOM(i,:), tELEM - 1
 ! enddo
+call wrtClstrSize( N, nnL, nRun, tMCS)
 
 
 do while( tMCS < tmax )
@@ -287,6 +289,7 @@ do while( tMCS < tmax )
         k = 0
         deltaCOM = 0.0
         do i = 1, N
+            call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
             call calcCellCOM( x(i,:,:),  cellCOM(i,:))
             ! calculate intercell distances
             do j = i+1, N
@@ -313,7 +316,8 @@ do while( tMCS < tmax )
         cellCOMold = cellCOM
 
         ! write outputs
-        ! if( mod( tMCS-1, 10) == 0)then
+        if( mod( tMCS-1, 10) == 0)then
+            call wrtClstrSize( N, nnL, nRun, tMCS)
         !     ! call wrtSigma( rSim, sigma, tMCS)
         !     ! write(150,*) xCOM(tMCS,:), tMCS
         !     ! call wrtXR( N, x, speciesR, tMCS)
@@ -322,7 +326,7 @@ do while( tMCS < tmax )
         !     do i = 1, N
         !         write(155,*) cellCOM(i,:), tMCS - 1
         !     enddo
-        ! endif
+        endif
 
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
