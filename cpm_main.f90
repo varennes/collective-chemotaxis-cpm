@@ -24,8 +24,8 @@ integer, dimension(2) :: a, b, nn
 real(b8), allocatable :: dXtMCS(:), p(:,:), q(:,:), cellCOM(:,:), cellCOMold(:,:), ptmp(:,:), deltaCOM(:)
 real(b8) :: plrP, plrR, P0
 
-real(b8), allocatable :: firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
-real(b8) :: d, df, dreset, prob, r, uNew, uOld, w
+real(b8), allocatable :: clstrDist(:), firstpass(:),  MSD(:), MSDrun(:), xCOM(:,:)
+real(b8) :: d, df, dreset, disp, prob, r, uNew, uOld, w
 real(b8) :: neMean, neMeanRun
 real(b8) :: t0, tf, treset
 
@@ -52,7 +52,6 @@ A0      = r0(1) * r0(2)       ! relaxed cell size
 P0      = 3.6*sqrt( real(A0)) ! relaxed cell perimeter
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
 dreset = 10.0
-df = dreset + df
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
@@ -80,6 +79,7 @@ allocate( node(2) )
 
 allocate(    MSD( tmax) )
 allocate( MSDrun( tmax) )
+allocate( clstrDist(runTotal) )
 allocate( firstpass(runTotal) )
 
 allocate( p(N,2) )
@@ -134,6 +134,8 @@ sigmaTmp = 0
 d    = 0.0
 xCOM = 0.0
 MSD  = 0.0
+disp = 0.0_b8
+clstrDist(:) = 0.0_b8
 
 a = 1
 b = 1
@@ -161,12 +163,12 @@ do i = 1, N
     call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
     ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
-    ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
+    call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
 enddo
-call getMeanSignal( meanSignal, N, x)
-do i = 1, N
-    call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(1,:))
-enddo
+! call getMeanSignal( meanSignal, N, x)
+! do i = 1, N
+!     call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(1,:))
+! enddo
 cellCOMold = cellCOM
 
 write(*,*) ' beta =',beta
@@ -305,13 +307,13 @@ do while( tMCS < tmax )
             ! write(*,*) 'cellCOM =', cellCOM(i,:)
 
             ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
-            ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
+            call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
         enddo
         ! update polarization using EC mechanism
-        call getMeanSignal( meanSignal, N, x)
-        do i = 1, N
-            call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(tMCS,:))
-        enddo
+        ! call getMeanSignal( meanSignal, N, x)
+        ! do i = 1, N
+        !     call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(tMCS,:))
+        ! enddo
 
         cellCOMold = cellCOM
 
@@ -328,11 +330,14 @@ do while( tMCS < tmax )
             enddo
         endif
 
-        ! calculate d
+        ! check if reset distance is/was attained
         if( treset /= 0.0 )then
             d = calcD( xCOM(tMCS,1), xCOM(int(treset),1))
+            ! calculate cluster distance travelled
+            call calcDistance( clstrDist(nRun), xCOM(tMCS,:), xCOM(tMCS-1,:))
             if( d >= df )then
-                firstpass(nRun) = float(tMCS - 1 - treset)
+                firstpass(nRun) = float(tMCS - 1) - treset
+                disp = sqrt( (xCOM(tMCS,1)-xCOM(int(treset),1))**2.0 + (xCOM(tMCS,2)-xCOM(int(treset),2))**2.0)
                 tMCS = tmax
             endif
         elseif( treset == 0.0 )then
@@ -355,6 +360,9 @@ write(108,*) firstpass(nRun) * real(ne0)/neMean
 neMeanRun = neMeanRun + neMean
 
 write(*,*) '  FPT: treset =', treset
+
+! output total distance travelled by the cluster
+write(201,*) clstrDist(nRun), disp
 
 enddo ! end run loop
 

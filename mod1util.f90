@@ -320,6 +320,23 @@ subroutine calcXCOM( N, x, xCOMt)
 end subroutine calcXCOM
 
 
+! calculate total distance travelled
+subroutine calcDistance( distance, xNew, xOld)
+    ! distance = distance travelled
+    ! xNew = new COM value
+    ! xOld = old COM value
+    implicit none
+    real(b8), intent(inout) :: distance
+    real(b8), intent(in), dimension(:) :: xNew, xOld
+    real(b8) :: delta
+
+    delta = 0.0_b8
+    delta = sqrt( (xNew(1)-xOld(1))**2.0 + (xNew(2)-xOld(2))**2.0)
+
+    distance = distance + delta
+end subroutine calcDistance
+
+
 ! calculate displacement along one dimension
 real(b8) function calcD( xCOMt, x0)
     ! xCOMt = COM position of cell group at a pre-set time
