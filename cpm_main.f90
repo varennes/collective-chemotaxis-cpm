@@ -163,12 +163,13 @@ do i = 1, N
     call getContactL( i, N, nnL(i,:), rSim, sigma, x(i,:,:))
     call calcCellCOM( x(i,:,:),  cellCOM(i,:))
     ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
-    call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
+    ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
 enddo
 ! call getMeanSignal( meanSignal, N, x)
-! do i = 1, N
-!     call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(1,:))
-! enddo
+do i = 1, N
+    ! call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(1,:))
+    call getECPolar2( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(1,:))
+enddo
 cellCOMold = cellCOM
 
 write(*,*) ' beta =',beta
@@ -302,18 +303,16 @@ do while( tMCS < tmax )
         enddo
 
         ! update polarization using MW mechanism
-        do i = 1, N
-            call calcCellCOM( x(i,:,:),  cellCOM(i,:))
-            ! write(*,*) 'cellCOM =', cellCOM(i,:)
-
-            ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
-            call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
-        enddo
-        ! update polarization using EC mechanism
-        ! call getMeanSignal( meanSignal, N, x)
         ! do i = 1, N
-        !     call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(tMCS,:))
+            ! call getMWPolar( p(i,:), plrR, cellCOM(i,:), x(i,:,:))
+            ! call getMWPolar2( p(i,:), plrR, rSim, sigma, x(i,:,:))
         ! enddo
+        ! update polarization using EC mechanism
+        call getMeanSignal( meanSignal, N, x)
+        do i = 1, N
+            ! call getECPolar( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(tMCS,:))
+            call getECPolar2( i, N, p(i,:), cellCOM, meanSignal(i), plrR, rSim, sigma, x(i,:,:), xCOM(tMCS,:))
+        enddo
 
         cellCOMold = cellCOM
 
@@ -362,7 +361,7 @@ neMeanRun = neMeanRun + neMean
 write(*,*) '  FPT: treset =', treset
 
 ! output total distance travelled by the cluster
-write(201,*) clstrDist(nRun), disp
+! write(201,*) clstrDist(nRun), disp
 
 enddo ! end run loop
 
