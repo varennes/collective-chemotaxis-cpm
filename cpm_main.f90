@@ -188,11 +188,12 @@ uNew = 0.0
 ! call wrtEdgeArray( edge, tELEM)
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
-call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
-call wrtX( N, x, tELEM)
-do i = 1, N
-    write(155,*) cellCOM(i,:), tELEM - 1
-enddo
+
+! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! call wrtX( N, x, tELEM)
+! do i = 1, N
+!     write(155,*) cellCOM(i,:), tELEM - 1
+! enddo
 ! call wrtClstrSize( N, nnL, nRun, tMCS)
 
 
@@ -317,17 +318,18 @@ do while( tMCS < tmax )
         cellCOMold = cellCOM
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
+        ! if( mod( tMCS-1, 10) == 0)then
             ! call wrtClstrSize( N, nnL, nRun, tMCS)
             ! call wrtSigma( rSim, sigma, tMCS)
             ! write(150,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
-            call wrtPolar( N, p, tMCS)
-            call wrtX( N, x, tMCS)
-            do i = 1, N
-                write(155,*) cellCOM(i,:), tMCS - 1
-            enddo
-        endif
+            ! call wrtPlrTotal( nRun, N, p, tMCS)
+            ! call wrtPolar( N, p, tMCS)
+            ! call wrtX( N, x, tMCS)
+            ! do i = 1, N
+            !     write(155,*) cellCOM(i,:), tMCS - 1
+            ! enddo
+        ! endif
 
         ! check if reset distance is/was attained
         if( treset /= 0.0 )then
@@ -361,7 +363,7 @@ neMeanRun = neMeanRun + neMean
 write(*,*) '  FPT: treset =', treset
 
 ! output total distance travelled by the cluster
-! write(201,*) clstrDist(nRun), disp
+write(201,*) clstrDist(nRun), disp
 
 enddo ! end run loop
 

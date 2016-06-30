@@ -260,4 +260,26 @@ subroutine wrtPolar( N, p, tstep)
 
 end subroutine wrtPolar
 
+
+! output total cluster polarization to fort.141
+subroutine wrtPlrTotal( nRun, N, p, tstep)
+    implicit none
+    integer,  intent(in) :: N, nRun, tstep
+    real(b8), intent(in), dimension(:,:) :: p
+    real(b8) :: px, py, pT
+    integer  :: i, j
+
+    px = 0.0_b8
+    py = 0.0_b8
+    pT = 0.0_b8
+    do i = 1, N
+        px = px + p(i,1)
+        py = py + p(i,2)
+    enddo
+    pT = sqrt( px**2 + py**2)
+    write(141,*) pT, tstep - 1, nRun
+
+end subroutine wrtPlrTotal
+
+
 end module
