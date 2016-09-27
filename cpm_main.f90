@@ -51,7 +51,7 @@ N       = rCell(1) * rCell(2) ! total number of cells
 A0      = r0(1) * r0(2)       ! relaxed cell size
 P0      = 3.6*sqrt( real(A0)) ! relaxed cell perimeter
 ! speciesR0 = g * sqrt( real(N) * real(A0)**3.0 )
-dreset = 20.0
+dreset = 10.0
 
 ! initialize parameters for polarization
 open(unit=12,file='polarInput.txt',status='old',action='read')
@@ -108,7 +108,7 @@ firstpass = 0.0
 do i = 2, rSim(1)+1
     rx1 = real(i)
     rx2 = real(rSim(2))
-    write(122,*) chemE( rx1, rx2)
+    ! write(122,*) chemE( rx1, rx2)
 enddo
 
 do nRun = 1, runTotal
@@ -195,6 +195,7 @@ uNew = 0.0
 ! call wrtU( 0.0, uOld, 0.0, 0.0, tELEM)
 ! call wrtXR( N, x, speciesR, tELEM)
 ! call wrtPolar( N, p, tELEM)! call wrtX( N, x, tELEM)
+! write(300+nRun,*) xCOM(tMCS,:), tMCS
 ! call wrtX( N, x, tELEM)
 ! do i = 1, N
 !     write(155,*) cellCOM(i,:), tELEM - 1
@@ -353,9 +354,9 @@ do while( tMCS < tmax )
         MSD(tMCS) = calcMSD( xCOM(tMCS,:), xCOM(1,:))
 
         ! write outputs
-        if( mod( tMCS-1, 10) == 0)then
+        if( mod( tMCS-1, 1) == 0 .AND. treset /= 0.0 )then
 
-            call wrtClstrSize( N, nnL, nRun, tMCS)
+            ! call wrtClstrSize( N, nnL, nRun, tMCS)
 
             ! output cluster area and perimeter
             ! if( treset /= 0 )then
@@ -424,7 +425,7 @@ do while( tMCS < tmax )
             ! write(162,*) ''
 
             ! call wrtSigma( rSim, sigma, tMCS)
-            ! write(150,*) xCOM(tMCS,:), tMCS
+            write(300+nRun,*) xCOM(tMCS,:), tMCS
             ! call wrtXR( N, x, speciesR, tMCS)
             ! call wrtPolar( N, p, tMCS)
             ! call wrtX( N, x, tMCS)
@@ -436,11 +437,11 @@ do while( tMCS < tmax )
         ! calculate d
         d = calcD( xCOM(tMCS,1), xCOM(1,1))
         if( treset == 0.0 )then
-            if( d >= dreset .AND. d < (dreset + 2.0) )then
+            if( d >= dreset )then
                 treset = tMCS - 1
             endif
         endif
-        if( d >= df )then
+        if( d >= (df+dreset) )then
             firstpass(nRun) = tMCS - 1 - treset
             tMCS = tmax
         endif
@@ -453,7 +454,7 @@ MSDrun = MSDrun + MSD
 
 neMean    = neMean / real(tcount)
 
-write(108,*) firstpass(nRun) * real(ne0)/neMean
+! write(108,*) firstpass(nRun) * real(ne0)/neMean
 
 neMeanRun = neMeanRun + neMean
 
@@ -468,9 +469,9 @@ MSDrun = MSDrun / real(runTotal)
 
 neMeanRun = neMeanRun / real(runTotal)
 
-do i = 1, runTotal
-    write(109,*) firstpass(i) * real(ne0)/neMeanRun
-enddo
+! do i = 1, runTotal
+!     write(109,*) firstpass(i) * real(ne0)/neMeanRun
+! enddo
 
 
 close(11)
