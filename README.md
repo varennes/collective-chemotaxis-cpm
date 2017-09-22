@@ -1,6 +1,6 @@
-[![DOI](https://zenodo.org/badge/22525/varennes/collectice-chemotaxis-cpm.svg)](https://zenodo.org/badge/latestdoi/22525/varennes/collectice-chemotaxis-cpm)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.54980.svg)](https://doi.org/10.5281/zenodo.54980)
 
-# Collectice-Chemotaxis-CPM
+# Collective-Chemotaxis-CPM
 
 Source code for simulations of collective chemotaxis using the cellular Potts Model (CPM) as the computational implementation. In these simulations biological cells sense a chemical gradient in the environment using intercellular communication and attempt to migrate in the direction of increasing chemical concentration based on their measurements.
 
