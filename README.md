@@ -4,7 +4,9 @@
 
 Source code for simulations of collective chemotaxis using the cellular Potts Model (CPM) as the computational implementation. In these simulations biological cells sense a chemical gradient in the environment using intercellular communication and attempt to migrate in the direction of increasing chemical concentration based on their measurements.
 
-The resulting migratory behavior of cell clusters of various sizes has been studied and the results are described in [**this paper**](http://arxiv.org/abs/1605.00712).
+The resulting migratory behavior of cell clusters of various sizes has been studied and the results are described in [**this paper**](http://www.cell.com/biophysj/abstract/S0006-3495(16)30523-9) [[preprint](http://arxiv.org/abs/1605.00712)].
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/pqYDWho2HR0?rel=0" frameborder="0" allowfullscreen></iframe>
 
 ## Compilation
 

@@ -139,8 +139,8 @@ b = 1
 
 ! initialize sigma
 rSim(1) = x1
-call itlSigma( r0, rCell, rSim, sigma)
-! call itlSigmaRandom( N, r0, rCell, rSim, sigma)
+! call itlSigma( r0, rCell, rSim, sigma)
+call itlSigmaRandom( N, r0, rCell, rSim, sigma)
 ! call itlSigmaSuper( N, r0, rCell, rSim, sigma)
 
 ! initialize edge
@@ -341,10 +341,8 @@ do while( tMCS < tmax )
             else
                 k = k + 1
             endif
-
             call getPolar4( p(i,:), plrR, q(i,:), speciesR0, speciesR(i))
         enddo
-
 
         cellCOMold = cellCOM
 
@@ -439,6 +437,7 @@ do while( tMCS < tmax )
         if( treset == 0.0 )then
             if( d >= dreset )then
                 treset = tMCS - 1
+                tMCS = 0
             endif
         endif
         if( d >= (df+dreset) )then
